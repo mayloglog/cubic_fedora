@@ -100,15 +100,28 @@ if arguments.version:
 # Main Application
 ########################################################################
 
-logger.verbose = arguments.verbose
-logger.log = arguments.log
-logger.log_title('Cubic - Custom Ubuntu ISO Creator')
-
 try:
+
+    version = constructor.get_package_version('cubic')
+    display_version = constructor.get_display_version(version)
+    urls = constructor.decode_object(CUBIC_URLS)
+    website = urls[CUBIC_WEBSITE]
+
+    # Set logger values from the command line arguments, if supplied.
+    logger.verbose = arguments.verbose
+    logger.log = arguments.log
+
+    logger.log_title('Cubic - Custom Ubuntu ISO Creator')
+
+    logger.log_value('Cubic version', display_version)
+    logger.log_value('Copyright', CUBIC_COPYRIGHT)
+    logger.log_value('Website', website)
 
     # ------------------------------------------------------------------
     # Initialize.
     # ------------------------------------------------------------------
+
+    logger.log_title('Initialize')
 
     # Real path is necessary here.
     model.application.directory = os.path.dirname(os.path.realpath(__file__))

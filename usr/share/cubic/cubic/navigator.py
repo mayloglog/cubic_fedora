@@ -36,7 +36,7 @@ function of this module.
 Pages
 -----
 
-All pages that work with the navigation module must have the following
+All pages that work with the navigatior module must have the following
 parameter and three functions:
 
 name
@@ -53,7 +53,7 @@ setup(action, old_page=None)
 • Executed prior to the enter() function.
 • Process the action from the prior page (such as 'back' or 'next').
 • Return 'error' to automatically transfer to an error page (as
-  specified in the navigation module's get_new_page() function).
+  specified in the navigatior module's get_new_page() function).
 • Return None to display the current page and execute the the enter()
   function.
 
@@ -63,10 +63,10 @@ enter(action, old_page=None)
 • Executed after the setup() function.
 • Process the action from the prior page (such as 'back' or 'next').
 • Return 'error' to automatically transfer to an error page (as
-  specified in the navigation module's get_new_page() function).
+  specified in the navigatior module's get_new_page() function).
 • Return None to stay on the current page.
 • Return an action (such as 'next') to automatically transfer to a page
-  corresponding to the action (as specified in the navigation module's
+  corresponding to the action (as specified in the navigatior module's
   get_new_page() function).
 
 leave(action, new_page=None)
@@ -76,11 +76,11 @@ leave(action, new_page=None)
 • Process the action from the current page (such as 'back', 'next',
   'copy', 'delete', or 'quit').
 • Return 'error' to automatically transfer to an error page (as
-  specified in the navigation module's get_new_page() function); in most
+  specified in the navigatior module's get_new_page() function); in most
   cases, the current page should be the 'error' page, since error
   messages will be displayed directly on the current page.
 • Return None to automatically transfer to a page corresponding to the
-  action from the current page (as specified in the navigation module's
+  action from the current page (as specified in the navigatior module's
   get_new_page() function).
 
 Handling Errors

@@ -1,4 +1,18 @@
-cubic (2026.02) resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+cubic (2026.05) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+
+  * Issues fixed in version 2026.05.103:
+
+  - Fixed Bug GH:#477, AttributeError: module 'urllib' has no attribute 'parse'.
+    Replaced "import urllib" with "import urllib.parse" in project_page.py,
+    boot_copy_page.py, terminal_copy_page.py, and preseed_copy_page.py. Replaced
+    obsolete function urllib.parse.urlparse() with urllib.parse.urlsplit() per
+    https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlparse.
+  - Improved copyright from "© 2015, 2020, 2024 PJ Singh" to "©2015-present PJ
+    Singh". (See cubic_wizard.ui and constants.py).
+  - Corrected "navigation module" to "navigatior module".
+  - Streamlined log outputs in file_utilities.py.
+  - Incorporated log outputs into the try block in the Main Application section
+    of cubic_wizard.py.
 
   * Issues fixed in version 2026.02.102:
 
@@ -665,4 +679,4 @@ cubic (2026.02) resolute questing plucky oracular noble mantic lunar kinetic jam
     customized OS.
   - Merged from Experimental branch, revision 19
 
- -- PJ Singh <psingh.cubic@gmail.com>  Sat, 07 Feb 2026 23:30:57 -0500
+ -- PJ Singh <psingh.cubic@gmail.com>  Sat, 30 May 2026 16:29:38 -0400

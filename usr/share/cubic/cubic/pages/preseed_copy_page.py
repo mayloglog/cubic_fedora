@@ -39,7 +39,7 @@
 
 import os
 import time
-import urllib
+import urllib.parse
 
 from cubic.constants import BOLD_RED, NORMAL
 from cubic.constants import FINAL_PERCENT
@@ -255,7 +255,7 @@ def create_file_details_list(uris):
     file_details_list = []
 
     for file_number, uri in enumerate(uris):
-        file_path = urllib.parse.unquote(urllib.parse.urlparse(uri).path)
+        file_path = urllib.parse.unquote(urllib.parse.urlsplit(uri).path)
         file_details_list.append([0, file_path])
 
     return file_details_list
@@ -291,7 +291,7 @@ def copy_files(current_directory, uris):
     global file_number
     try:
         for file_number, uri in enumerate(uris):
-            file_path = urllib.parse.unquote(urllib.parse.urlparse(uri).path)
+            file_path = urllib.parse.unquote(urllib.parse.urlsplit(uri).path)
             if total_files == 1:
                 message = f'Copying one file to {current_directory}...'
             else:

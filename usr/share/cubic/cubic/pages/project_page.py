@@ -51,7 +51,7 @@ The following fields must be set before entering this page:
 
 import os
 import re
-import urllib
+import urllib.parse
 
 from cubic.choosers import directory_chooser
 from cubic.choosers import iso_image_chooser
@@ -2295,7 +2295,7 @@ def validate_custom_update_os_release(fields):
 
 def is_url(url):
     try:
-        result = urllib.parse.urlparse(url)
+        result = urllib.parse.urlsplit(url)
         return all([result.scheme, result.netloc])
     except ValueError:
         return False

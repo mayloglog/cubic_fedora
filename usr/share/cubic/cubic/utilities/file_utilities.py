@@ -209,8 +209,8 @@ def get_directory_size(start_directory):
         The total size of the directory in bytes.
     """
 
-    logger.log_label('Calculate directory size')
-    logger.log_value('Directory', start_directory)
+    # logger.log_label('Calculate directory size')
+    logger.log_value('Calculate directory size', start_directory)
 
     total_size = 0
     for directory_path, directory_names, file_names in os.walk(start_directory):
@@ -665,8 +665,8 @@ def read_yaml_file(file_path):
         The exception that occurred.
     """
 
-    logger.log_label('Read yaml file')
-    logger.log_value('File path', file_path)
+    # logger.log_label('Read yaml file')
+    logger.log_value('Read yaml file', file_path)
 
     yaml_items = None
     with open(file_path) as file:
@@ -688,8 +688,8 @@ def save_yaml_file(yaml_items, file_path):
         The exception that occurred.
     """
 
-    logger.log_label('Save yaml file')
-    logger.log_value('File path', file_path)
+    # logger.log_label('Save yaml file')
+    logger.log_value('Save yaml file', file_path)
 
     with open(file_path, 'w') as file:
         yaml.dump(yaml_items, file)
@@ -896,8 +896,8 @@ def replace_text_in_file_ALTERNATIVE(file_path, search_text, replacement_text):
         The text to replace with.
     """
 
-    logger.log_label('Replace text in file')
-    logger.log_value('Filepath', file_path)
+    # logger.log_label('Replace text in file')
+    logger.log_value('Replace text in file', file_path)
     logger.log_value('Search text', search_text)
     logger.log_value('Replacement text', replacement_text)
 
@@ -1053,7 +1053,9 @@ def calculate_md5_hash_ORIGINAL(file_path, start_directory=os.path.sep, buffer_s
 
 def copy_file(source_file_path, target_file_path):
     """
-    Copy the file to the target file path.
+    Copy the source file to the target file path. If the target file
+    already exists, the source file will overwrite it without throwing
+    an exception.
 
     Arguments:
     source_file_path : str
@@ -1062,9 +1064,9 @@ def copy_file(source_file_path, target_file_path):
         The full path to copy the file to.
     """
 
-    logger.log_label('Copy file')
-    logger.log_value('Source file path', source_file_path)
-    logger.log_value('Target file path', target_file_path)
+    # logger.log_label('Copy file')
+    logger.log_value('Copy file from', source_file_path)
+    logger.log_value('Copy file to', target_file_path)
 
     shutil.copy(source_file_path, target_file_path)
 

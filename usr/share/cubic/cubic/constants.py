@@ -95,7 +95,8 @@ GAP = '\u200A'
 # Application Versions
 ########################################################################
 
-CUBIC_COPYRIGHT = '© 2015, 2020, 2024 PJ Singh'
+# CUBIC_COPYRIGHT = '© 2015, 2020, 2024 PJ Singh'
+CUBIC_COPYRIGHT = '©2015-present PJ Singh. All rights reserved.'
 
 BLANK_VERSION_0000 = '00.00.00'  # Unknown version
 
@@ -126,7 +127,7 @@ BLANK_VERSION_0000 = '00.00.00'  # Unknown version
 #   Thru: Release 2024.__-__ on __/__/20__
 
 # Cubic release version numbers are in YYYY.MM.RR format.
-CUBIC_VERSION_0000 = '0000.00.00'  # Unknown version
+CUBIC_VERSION_0000 = '0000.00.000'  # Unknown version
 CUBIC_VERSION_2019 = '2015.11.1'  # Releases 2015.11-1 thru 2020.02-62
 CUBIC_VERSION_2020 = '2020.04.1'  # Releases 2020.04-1 thru 2020.10-35
 CUBIC_VERSION_2021 = '2021.12.36'  # Releases 2021.12-36 thru 2022.06-72
@@ -134,9 +135,9 @@ CUBIC_VERSION_2022 = '2022.11.73'  # Releases 2022.11-73 thru 2023.05.82
 CUBIC_VERSION_2023 = '2023.05.83'  # Releases 2023.03-76 thru 2024.02-86
 CUBIC_VERSION_2024 = '2024.08.87'  # Releases 2024.08-87 thru present
 
-###############################################################
+########################################################################
 # File Sizes
-###############################################################
+########################################################################
 
 # Units for xorriso command: 1024, 1024k, 1024m, 1024g, 2048, 512.
 MULTIPLES = {'k': KIB, 'm': MIB, 'g': GIB, 't': TIB, 's': 2048, 'd': 512}
