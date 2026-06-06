@@ -70,11 +70,11 @@ from cubic.utilities import model
 parser = argparse.ArgumentParser(
     prog='cubic',
     description='Cubic (Custom Ubuntu ISO Creator) is a GUI wizard to create a customized Live ISO image for Ubuntu and Debian based distributions.')
-parser.add_argument('directory', nargs='?', help='directory for a new or existing project')
-parser.add_argument('iso', nargs='?', help='original ISO file for a new project (ignored for existing projects)')
 parser.add_argument("-l", "--log", action="store_true", help="output a formatted log to a file in the project directory")
 parser.add_argument("-v", "--verbose", action="store_true", help="output a formatted log to the console")
 parser.add_argument("-V", "--version", action="store_true", help="print version information and exit")
+parser.add_argument('directory', nargs='?', help='directory for a new or existing project')
+parser.add_argument('iso', nargs='?', help='original ISO file for a new project (ignored for existing projects)')
 
 if os.getuid() == 0:
     print('Error: Cubic may not be run using sudo or as root because it is a graphical user interface application.')
@@ -139,10 +139,8 @@ try:
 
     # Set model values from the command line arguments, if supplied.
     if arguments.directory:
-        # logger.log_value('Project directory argument', arguments.directory)
         model.arguments.directory = os.path.realpath(arguments.directory)
     if arguments.iso:
-        # logger.log_value('Original ISO file path argument', arguments.iso)
         model.arguments.file_path = os.path.realpath(arguments.iso)
 
     # Add additional mime types.

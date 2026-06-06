@@ -1,4 +1,18 @@
-cubic (2026.05) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+cubic (2026.06) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+
+  * Issues fixed in version 2026.06.104:
+
+  - Changed constant variable name from "CUBIC_VERSION_" to "CONFIG_VERSION_" to
+    better reflect usage.
+  - Included a new asset to support the extraction processes: empty.squashfs.
+  - Improved logic on the Extract page to copy original ISO files.
+  - Check for Ubiquity or Calamares on the Prepare page to determine if a
+    standard remove file and minimal remove file should be created.
+  - Improved logic on the Prepare page for saving file system manifests.
+  - Improved logic on the Generate page for creating the squashfs file and the
+    file system size files.
+  - Corrected the synopsis section of the Cubic man page to include the
+    previously omitted [-l] option.
 
   * Issues fixed in version 2026.05.103:
 
@@ -679,4 +693,4 @@ cubic (2026.05) stonking resolute questing plucky oracular noble mantic lunar ki
     customized OS.
   - Merged from Experimental branch, revision 19
 
- -- PJ Singh <psingh.cubic@gmail.com>  Sat, 30 May 2026 16:29:38 -0400
+ -- PJ Singh <psingh.cubic@gmail.com>  Sat, 06 Jun 2026 18:19:41 -0400

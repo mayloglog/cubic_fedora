@@ -50,7 +50,7 @@ import os
 import time
 
 from cubic.constants import BOLD_RED, NORMAL
-from cubic.constants import CUBIC_VERSION_2024
+from cubic.constants import CONFIG_VERSION_2024
 from cubic.constants import FIFTY_PERCENT
 from cubic.constants import GAP
 from cubic.constants import IMAGE_FILE_NAME
@@ -108,7 +108,7 @@ def setup(action, old_page=None):
         # customizing legacy projects.
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
         cubic_version = constructor.get_display_version(model.project.first_version)
-        if version.parse(cubic_version) >= version.parse(CUBIC_VERSION_2024):
+        if version.parse(cubic_version) >= version.parse(CONFIG_VERSION_2024):
 
             # Update the status in case the user modified the cubic.conf
             # project configuration file or deleted some project files.
@@ -740,10 +740,12 @@ def analyze_iso_layout(source_directory_path):
     model.layout.additional_exclude_path = f'{model.layout.squashfs_directory}/*.gpg', True
 
     # Set important files that may not exist on the original ISO.
-    if not model.layout.size_file_name:
-        model.layout.size_file_name = 'filesystem.size', True
     if not model.layout.manifest_file_name:
+        # The Prepare page expects manifest_file_name to be set as valid.
         model.layout.manifest_file_name = 'filesystem.manifest', True
+    if not model.layout.size_file_name:
+        # The Generate page expects size_file_name to be set as valid.
+        model.layout.size_file_name = 'filesystem.size', True
 
     # print('-' * 80)
     # model.layout.print()
@@ -933,6 +935,8 @@ def copy_original_iso_files():
 
     # 5. Installer / Live Section
     include_51 = constructor.construct_rsync_includes(model.layout.squashfs_directory_as_list, model.layout.installer_sources_file_name_as_list)
+    # Copy the installer / live overlay file systems because they
+    # will not be extracted and merged.
     include_52 = constructor.construct_rsync_includes(model.layout.squashfs_directory_as_list, model.layout.installer_squashfs_file_name_as_list)
     include_53 = constructor.construct_rsync_includes(model.layout.squashfs_directory_as_list, model.layout.installer_manifest_file_name_as_list)
     include_54 = constructor.construct_rsync_includes(model.layout.squashfs_directory_as_list, model.layout.installer_size_file_name_as_list)
@@ -966,7 +970,14 @@ def copy_original_iso_files():
     # N/A
 
     # 5. Installer / Live Section
-    # N/A
+    # Copy the installer / live overlay file systems because they
+    # will not be extracted and merged.
+    exclude_52 = ''
+    exclude_53 = ''
+    exclude_54 = ''
+    exclude_55 = ''
+    exclude_56 = ''
+    exclude_57 = ''
 
     # 6. Additional Section
     exclude_61 = constructor.construct_rsync_excludes(model.layout.additional_exclude_path_as_list)
@@ -1020,7 +1031,7 @@ def copy_original_iso_files():
         f' {include_52}'  # installer_squashfs_file_name
         f' {include_53}'  # installer_manifest_file_name
         f' {include_54}'  # installer_size_file_name
-        f' {include_55}'  # installer_generic_squashfs_file
+        f' {include_55}'  # installer_generic_squashfs_file_name
         f' {include_56}'  # installer_generic_manifest_file_name
         f' {include_57}'  # installer_generic_size_file_name
         # 6. Additional Section
@@ -1037,7 +1048,12 @@ def copy_original_iso_files():
         # 4. Standard Section
         #   N/A
         # 5. Installer / Live Section
-        #   N/A
+        f' {exclude_52}'  # installer_squashfs_file_name
+        f' {exclude_53}'  # installer_manifest_file_name
+        f' {exclude_54}'  # installer_size_file_name
+        f' {exclude_55}'  # installer_generic_squashfs_file_name
+        f' {exclude_56}'  # installer_generic_manifest_file_name
+        f' {exclude_57}'  # installer_generic_size_file_name
         # 6. Additional Section
         f' {exclude_61}'  # additional_exclude_path
     )

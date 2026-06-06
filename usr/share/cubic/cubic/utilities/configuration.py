@@ -61,8 +61,8 @@ Cubic versions:
   • Added the "has_minimal_install" option to the Project configuration
 
 "Release" 2024 Version:
-  From: Release 2024.09-87 on 09/01/2024
-  Thru: Release 2024.__-__ on __/__/20__
+  From: Release 2024.09-87  on 09/01/2024
+  Thru: Release 2026.__.___ on __/__/20__
   • Added the Layout section to the the Project configuration
   • Removed the "Installer" section from the Project configuration
 """
@@ -84,7 +84,7 @@ import os
 from abc import ABC, abstractmethod
 from packaging import version
 
-from cubic.constants import CUBIC_VERSION_2024
+from cubic.constants import CONFIG_VERSION_2024
 from cubic.utilities import constructor
 from cubic.utilities import file_utilities
 from cubic.utilities import logger
@@ -454,7 +454,7 @@ class Application(Configuration):
 
         # Load the model using the correct configuration file layout.
         previous_version = version.parse(previous_version)
-        if previous_version < version.parse(CUBIC_VERSION_2024):
+        if previous_version < version.parse(CONFIG_VERSION_2024):
             self._load_model_XXXX_layout()
         else:
             self._load_model_YYYY_layout()
@@ -604,7 +604,7 @@ class Project(Configuration):
 
         # Load the model using the correct configuration file layout.
         previous_version = version.parse(previous_version)
-        if previous_version < version.parse(CUBIC_VERSION_2024):
+        if previous_version < version.parse(CONFIG_VERSION_2024):
             self._load_model_2023_layout()
         else:
             self._load_model_2024_layout()
@@ -821,7 +821,7 @@ class Project(Configuration):
             A derived class of Configuration.
         """
 
-        logger.log_value('Save project configuration', f'2023 layout to {self.file_path}')
+        logger.log_value('Save project configuration', f'2024 layout to {self.file_path}')
 
         # Project
         self.set('Project', 'cubic_version', model.application.cubic_version)

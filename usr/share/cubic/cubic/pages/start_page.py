@@ -43,7 +43,7 @@ from packaging import version
 
 from cubic.choosers import directory_chooser
 from cubic.constants import BOLD_RED, NORMAL
-from cubic.constants import CUBIC_VERSION_2024
+from cubic.constants import CONFIG_VERSION_2024
 from cubic.constants import OK, ERROR, EXCLUDED_FILE_SYSTEM_TYPES, FILE_SYSTEM_TYPES
 from cubic.utilities import configuration
 from cubic.utilities import constructor
@@ -581,7 +581,7 @@ def validate_page():
     # ------------------------------------------------------------------
 
     cubic_version = constructor.get_display_version(model.project.first_version)
-    if version.parse(cubic_version) < version.parse(CUBIC_VERSION_2024):
+    if version.parse(cubic_version) < version.parse(CONFIG_VERSION_2024):
 
         # Set the Cubic version.
         model.project.cubic_version = model.application.cubic_version
