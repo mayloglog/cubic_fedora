@@ -740,12 +740,10 @@ def analyze_iso_layout(source_directory_path):
     model.layout.additional_exclude_path = f'{model.layout.squashfs_directory}/*.gpg', True
 
     # Set important files that may not exist on the original ISO.
-    if not model.layout.manifest_file_name:
-        # The Prepare page expects manifest_file_name to be set as valid.
-        model.layout.manifest_file_name = 'filesystem.manifest', True
     if not model.layout.size_file_name:
-        # The Generate page expects size_file_name to be set as valid.
         model.layout.size_file_name = 'filesystem.size', True
+    if not model.layout.manifest_file_name:
+        model.layout.manifest_file_name = 'filesystem.manifest', True
 
     # print('-' * 80)
     # model.layout.print()
@@ -970,14 +968,7 @@ def copy_original_iso_files():
     # N/A
 
     # 5. Installer / Live Section
-    # Copy the installer / live overlay file systems because they
-    # will not be extracted and merged.
-    exclude_52 = ''
-    exclude_53 = ''
-    exclude_54 = ''
-    exclude_55 = ''
-    exclude_56 = ''
-    exclude_57 = ''
+    # N/A
 
     # 6. Additional Section
     exclude_61 = constructor.construct_rsync_excludes(model.layout.additional_exclude_path_as_list)
@@ -1048,12 +1039,7 @@ def copy_original_iso_files():
         # 4. Standard Section
         #   N/A
         # 5. Installer / Live Section
-        f' {exclude_52}'  # installer_squashfs_file_name
-        f' {exclude_53}'  # installer_manifest_file_name
-        f' {exclude_54}'  # installer_size_file_name
-        f' {exclude_55}'  # installer_generic_squashfs_file_name
-        f' {exclude_56}'  # installer_generic_manifest_file_name
-        f' {exclude_57}'  # installer_generic_size_file_name
+        #   N/A
         # 6. Additional Section
         f' {exclude_61}'  # additional_exclude_path
     )

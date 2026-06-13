@@ -528,181 +528,30 @@ def _copy_kernel_file(source_file_path, target_file_path, user, file_number, tot
 
 
 def create_squashfs():
-    """
-    Create the squashfs file(s).
-
-    Returns:
-    error : bool
-        True, if an error occurred.
-        False, if an error did not occur.
-    """
-
-    # Cubic version 2024.02.86:
-    # • minimal squashfs or filesystem squashfs is generated
-    # • minimal squashfs size or filesystem size is calculated
-    # • standard squashfs is copied from the original iso
-    # • standard squashfs size is set to minimal squashfs size
-    #
-    # Cubic version 2024.08.87:
-    # • minimal squashfs or filesystem squashfs is generated
-    # • minimal squashfs size or filesystem size is calculated
-    # • standard squashfs is a link to minimal squashfs
-    # • standard squashfs size is set to minimal squashfs size
-    #
-    # Cubic version 2026.02.103:
-    # • minimal squashfs or filesystem squashfs is generated
-    # • minimal squashfs size or filesystem size is calculated
-    # • standard squashfs is empty (copied from /usr/share/cubic/assets)
-    # • standard squashfs size is 4096 bytes
 
     logger.log_label('Compress the Linux file system')
 
-    # 1. Casper Section
-    #    • N/A
-    # 2. General Section
-    #    • Customized
-    #    • Non-Overlay
-    #    • squashfs_file_name
-    #    • Desktop, Server
-    #    • Versions not using overlay file system
-    #    • Ubuntu Server 21.04 Hirsute Hippo and older
-    #    • Ubuntu Desktop 22.10 Kinetic Kudu and older
-    # 3. Minimal Section
-    #    • Customized
-    #    • Overlay
-    #    • minimal_squashfs_file_name
-    #    • Desktop, Server
-    #    • Versions using overlay file system
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 4. Standard Section
-    #    • Overlay
-    #    • standard_squashfs_file_name
-    #    • Desktop, Server
-    #    • Versions using overlay file system
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 5. Installer / Live Section
-    #    • Overlay
-    #    • installer_squashfs_file_name
-    #    • Desktop, Server
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 6. Generic Installer Section
-    #    • Overlay
-    #    • installer_generic_squashfs_file_name
-    #    • Server only
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
+    directory = model.layout.squashfs_directory
 
-    # 1. Casper Section
-    # N/A
-
-    # 2. General Section
-    # For older versions of Ubuntu that do not use overlay file systems,
-    # create the squashfs, such as:
-    # • grml64-full.squashfs
-    # • squashfs.img
-    # • filesystem.squashfs
-    # • etc.
-    if model.layout.squashfs_file_name:
-        source_file_path = model.project.custom_root_directory
-        target_file_path = os.path.join(model.project.custom_disk_directory, \
-                                        model.layout.squashfs_directory,     \
-                                        model.layout.squashfs_file_name)
-
-        is_error = _create_squashfs(source_file_path, target_file_path)
-
-        if is_error: return True  # (Error)
-
-    # 3. Minimal Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the minimal squashfs, such as:
-    # • minimal.squashfs
-    # • ubuntu-server-minimal.squashfs
-    # • etc.
     if model.layout.minimal_squashfs_file_name:
-        source_file_path = model.project.custom_root_directory
-        target_file_path = os.path.join(model.project.custom_disk_directory,   \
-                                        model.layout.squashfs_directory,       \
-                                        model.layout.minimal_squashfs_file_name)
+        file_name = model.layout.minimal_squashfs_file_name
+    else:
+        file_name = model.layout.squashfs_file_name
 
-        is_error = _create_squashfs(source_file_path, target_file_path)
-
-        if is_error: return True  # (Error)
-
-    # 4. Standard Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the standard squashfs, such as:
-    # • minimal.standard.squashfs
-    # • ubuntu-server-minimal.ubuntu-server.squashfs
-    # • etc.
-    if model.layout.standard_squashfs_file_name:
-        # Copy the empty squashfs from /usr/share/cubic/assets.
-        source_file_path = os.path.join(model.application.directory, \
-                                        'assets',                    \
-                                        'empty.squashfs')
-        target_file_path = os.path.join(model.project.custom_disk_directory,    \
-                                        model.layout.squashfs_directory,        \
-                                        model.layout.standard_squashfs_file_name)
-
-        is_error = _copy_squashfs(source_file_path, target_file_path)
-
-        if is_error: return True  # (Error)
-
-    # 5. Installer / Live Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the standard squashfs, such as:
-    # • installer.squashfs
-    # • minimal.standard.live.squashfs
-    # • ubuntu-server-minimal.ubuntu-server.installer.squashfs
-    # • etc.
-    if model.layout.installer_squashfs_file_name:
-        # Copy the empty squashfs from /usr/share/cubic/assets.
-        source_file_path = os.path.join(model.application.directory, \
-                                        'assets',                    \
-                                        'empty.squashfs')
-        target_file_path = os.path.join(model.project.custom_disk_directory,     \
-                                        model.layout.squashfs_directory,         \
-                                        model.layout.installer_squashfs_file_name)
-
-        is_error = _copy_squashfs(source_file_path, target_file_path)
-
-        if is_error: return True  # (Error)
-
-    # 6. Generic Installer Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the installer generic squashfs, such as:
-    # • ubuntu-server-minimal.ubuntu-server.installer.generic.squashfs
-    # • etc.
-    if model.layout.installer_generic_squashfs_file_name:
-        # Copy the empty squashfs from /usr/share/cubic/assets.
-        source_file_path = os.path.join(model.application.directory, \
-                                        'assets',                    \
-                                        'empty.squashfs')
-        target_file_path = os.path.join(model.project.custom_disk_directory,             \
-                                        model.layout.squashfs_directory,                 \
-                                        model.layout.installer_generic_squashfs_file_name)
-
-        is_error = _copy_squashfs(source_file_path, target_file_path)
-
-        if is_error: return True  # (Error)
-
-    message = 'Success.'
-    displayer.update_label('generate_page__create_squashfs_message', message, False)
-    displayer.update_status('generate_page__create_squashfs', OK)
-    return False  # (No error)
-
-
-def _create_squashfs(source_file_path, target_file_path):
-
+    source_file_path = model.project.custom_root_directory
     logger.log_value('The source file path is', source_file_path)
+
+    target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
     logger.log_value('The target file path is', target_file_path)
 
     message = f'Using {model.options.compression} compression.'
     displayer.update_label('generate_page__create_squashfs_message', message, False)
 
-    # Create the squashfs file.
+    # Create the standard squashfs file, such as:
+    # • filesystem.squashfs
+    # • minimal.standard.squashfs
+    # • ubuntu-server-minimal.ubuntu-server.squashfs
+    # • etc.
 
     # Pkexec is required.
     program = os.path.join(model.application.directory, 'commands', 'compress-root')
@@ -744,23 +593,52 @@ def _create_squashfs(source_file_path, target_file_path):
         logger.log_value('Do not propagate exception', exception)
         return True  # (Error)
 
-    return False  # (No error)
+    # Create a link to minimal_squashfs_file_name from standard_squashfs_file_name.
+    if model.layout.minimal_squashfs_file_name:
+        directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
+        file_name = model.layout.minimal_squashfs_file_name
+        link_name = model.layout.standard_squashfs_file_name
+        _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
+        if signal_status:
+            # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
+            message = 'Error. Unable to link to the standard Linux file system.'
+            displayer.update_label('generate_page__create_squashfs_message', message, True)
+            displayer.update_status('generate_page__create_squashfs', ERROR)
+            return True  # (Error)
+    '''
+    ### TODO: TESTING
+    # Create a link to minimal_squashfs_file_name from installer_squashfs_file_name.
+    if model.layout.minimal_squashfs_file_name:
+        directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
+        file_name = model.layout.minimal_squashfs_file_name
+        link_name = model.layout.installer_squashfs_file_name
+        _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
+        if signal_status:
+            # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
+            message = 'Error. Unable to link to the standard Linux file system.'
+            displayer.update_label('generate_page__create_squashfs_message', message, True)
+            displayer.update_status('generate_page__create_squashfs', ERROR)
+            return True  # (Error)
+    '''
+    '''
+    ### TODO: TESTING
+    # Create a link to minimal_squashfs_file_name from installer_generic_squashfs_file_name.
+    if model.layout.minimal_squashfs_file_name:
+        directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
+        file_name = model.layout.minimal_squashfs_file_name
+        link_name = model.layout.installer_generic_squashfs_file_name
+        _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
+        if signal_status:
+            # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
+            message = 'Error. Unable to link to the standard Linux file system.'
+            displayer.update_label('generate_page__create_squashfs_message', message, True)
+            displayer.update_status('generate_page__create_squashfs', ERROR)
+            return True  # (Error)
+    '''
 
-
-def _copy_squashfs(source_file_path, target_file_path):
-
-    # The function file_utilities.copy_file() logs the source and target.
-    # logger.log_value('The source file path is', source_file_path)
-    # logger.log_value('The target file path is', target_file_path)
-
-    file_utilities.copy_file(source_file_path, target_file_path)
-    if not os.path.isfile(target_file_path):
-        logger.log_value('Error. Unable to copy', f'{source_file_path} to {target_file_path}')
-        message = 'Error. Unable to create the standard Linux file system.'
-        displayer.update_label('generate_page__create_squashfs_message', message, True)
-        displayer.update_status('generate_page__create_squashfs', ERROR)
-        return True  # (Error)
-
+    message = 'Success.'
+    displayer.update_label('generate_page__create_squashfs_message', message, False)
+    displayer.update_status('generate_page__create_squashfs', OK)
     return False  # (No error)
 
 
@@ -852,72 +730,19 @@ def create_squashfs_TESTING_3():
 
 def update_file_system_size():
 
-    # Cubic version 2024.02.86:
-    # • minimal squashfs or filesystem squashfs is generated
-    # • minimal squashfs size or filesystem size is calculated
-    # • standard squashfs is copied from the original iso
-    # • standard squashfs size is set to minimal squashfs size
-    #
-    # Cubic version 2024.08.87:
-    # • minimal squashfs or filesystem squashfs is generated
-    # • minimal squashfs size or filesystem size is calculated
-    # • standard squashfs is a link to minimal squashfs
-    # • standard squashfs size is set to minimal squashfs size
-    #
-    # Cubic version 2026.06.104:
-    # • minimal squashfs or filesystem squashfs is generated
-    # • minimal squashfs size or filesystem size is calculated
-    # • standard squashfs is empty (copied from /usr/share/cubic/assets)
-    # • standard squashfs size is 4096 bytes
-
     logger.log_label('Update the file system size')
 
-    # 1. Casper Section
-    #    • N/A
-    # 2. General Section
-    #    • Customized
-    #    • Non-Overlay
-    #    • size_file_name
-    #    • Desktop, Server
-    #    • Versions not using overlay file system
-    #    • Ubuntu Server 21.04 Hirsute Hippo and older
-    #    • Ubuntu Desktop 22.10 Kinetic Kudu and older
-    # 3. Minimal Section
-    #    • Customized
-    #    • Overlay
-    #    • minimal_size_file_name
-    #    • Desktop, Server
-    #    • Versions using overlay file system
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 4. Standard Section
-    #    • Overlay
-    #    • standard_size_file_name
-    #    • Desktop, Server
-    #    • Versions using overlay file system
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 5. Installer / Live Section
-    #    • Overlay
-    #    • installer_size_file_name
-    #    • Desktop, Server
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 6. Generic Installer Section
-    #    • Overlay
-    #    • installer_generic_size_file_name
-    #    • Server only
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 7. Total File System Size
-    #    • size_file_name
-    #    • Desktop, Server
+    # The file system size files appear on various ISOs as follows:
+    # • standard_size_file_name............ Desktop, Server
+    # • minimal_size_file_name............. Desktop, Server
+    # • installer_size_file_name........... Desktop, Server
+    # • installer_generic_size_file_name... Server only
+    # • size_file_name..................... Desktop, Server
 
-    size_3_in_bytes = 0  # 3. Minimal Section (Customized)
-    size_4_in_bytes = 0  # 4. Standard Section
-    size_5_in_bytes = 0  # 5. Installer / Live Section
-    size_6_in_bytes = 0  # 6. Generic Installer Section
-    size_7_in_bytes = 0  # 7. Total File System Size
+    size_1_in_bytes = 0  # Customized file system size
+    size_2_in_bytes = 0  # Installer file system size
+    size_3_in_bytes = 0  # Generic installer file system size
+    size_4_in_bytes = 0  # File system size
 
     # Calculate the customized file system size.
     try:
@@ -926,7 +751,7 @@ def update_file_system_size():
         program = os.path.join(model.application.directory, 'commands', 'file-size')
         command = ['pkexec', program, model.project.custom_root_directory]
         result, exit_status, signal_status = execute_synchronous(command)
-        # size_3_information = re.search(r'^(\d+)', result)
+        # size_1_information = re.search(r'^(\d+)', result)
         # The following regex is a workaround for non-UTF8 encoded
         # scripts such as Cyrillic, because the result from the pkexec
         # processes is preceded with the error:
@@ -934,11 +759,11 @@ def update_file_system_size():
         # (string, -1, NULL)' failed."
         # See https://github.com/PJ-Singh-001/Cubic/issues/420.
         escaped_path = re.escape(model.project.custom_root_directory)
-        size_3_information = re.search(rf'(\d+)\s*{escaped_path}', result)
-        size_3_in_bytes = int(size_3_information.group(1))
-        size_3_in_mib = size_3_in_bytes / MIB
-        size_3_in_gib = size_3_in_bytes / GIB
-        logger.log_value('The customized Linux file system size is', f'{locale.format_string("%.2f", size_3_in_gib, True)} GiB ({size_3_in_bytes:n} bytes)')
+        size_1_information = re.search(rf'(\d+)\s*{escaped_path}', result)
+        size_1_in_bytes = int(size_1_information.group(1))
+        size_1_in_mib = size_1_in_bytes / MIB
+        size_1_in_gib = size_1_in_bytes / GIB
+        logger.log_value('The customized Linux file system size is', f'{locale.format_string("%.2f", size_1_in_gib, True)} GiB ({size_1_in_bytes:n} bytes)')
     except InterruptException as exception:
         logger.log_value('Unable to get the customized file system size for', model.project.custom_root_directory)
         logger.log_value('The exception is', exception)
@@ -956,152 +781,94 @@ def update_file_system_size():
         logger.log_value('Do not propagate exception', exception)
         return True  # (Error)
 
-    # 1. Casper Section
-    # N/A
-
-    # 2. General Section (Customized)
-    # For older versions of Ubuntu that do not use overlay file systems,
-    # create the file system size, such as:
-    # • filesystem.size
-    # • etc.
-    # See Total File System Size, below.
-
-    # 3. Minimal Section (Customized)
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the minimal file system size, such as:
-    # • minimal.size
-    # • ubuntu-server-minimal.size
-    # • etc.
-    if model.layout.minimal_size_file_name:
-        try:
-            # Calculate the size.
-            # The minimal file system size is the same as the customized
-            # file system size.
-            logger.log_value('The minimum Linux file system size is', f'{locale.format_string("%.2f", size_3_in_gib, True)} GiB ({size_3_in_bytes:n} bytes)')
-            # Write the size.
-            file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.minimal_size_file_name)
-            logger.log_value('Write the minimal file system size to', file_path)
-            file_utilities.write_line(str(size_3_in_bytes), file_path, True)
-        except InterruptException as exception:
-            logger.log_value('Unable to get the customized file system size for', model.project.custom_root_directory)
-            logger.log_value('The exception is', exception)
-            message = 'Error. Unable to get the customized file system size.'
-            displayer.update_label('generate_page__update_file_system_size_message', message, True)
-            displayer.update_status('generate_page__update_file_system_size', ERROR)
-            logger.log_value('Propagate exception', exception)
-            raise exception
-        except Exception as exception:
-            logger.log_value('Unable to get the customized file system size for', model.project.custom_root_directory)
-            logger.log_value('The exception is', exception)
-            message = 'Error. Unable to get the customized file system size.'
-            displayer.update_label('generate_page__update_file_system_size_message', message, True)
-            displayer.update_status('generate_page__update_file_system_size', ERROR)
-            logger.log_value('Do not propagate exception', exception)
-            return True  # (Error)
-
-    # 4. Standard Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the standard file system size, such as:
-    # • minimal.standard.size
-    # • ubuntu-server-minimal.ubuntu-server.size
-    # • etc.
-    if model.layout.standard_size_file_name:
-        try:
-            # Calculate the size.
-            # The standard squashfs is empty and has size 4096
-            # bytes, assuming the default block size used by many file
-            # systems. This file is copied from /usr/share/cubic/assets.
-            size_4_in_bytes = 4096
-            size_4_in_mib = size_4_in_bytes / MIB
-            size_4_in_gib = size_4_in_bytes / GIB
-            logger.log_value('The standard Linux file system size is', f'{locale.format_string("%.2f", size_4_in_gib, True)} GiB ({size_4_in_bytes:n} bytes)')
-
-            # Write the size.
-            file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.standard_size_file_name)
-            logger.log_value('Write the standard file system size to', file_path)
-            file_utilities.write_line(str(size_4_in_bytes), file_path, True)
-        except InterruptException as exception:
-            logger.log_value('Unable to save the standard file system size in', file_path)
-            logger.log_value('The exception is', exception)
-            message = 'Error. Unable to save the standard file system size.'
-            displayer.update_label('generate_page__update_file_system_size_message', message, True)
-            displayer.update_status('generate_page__update_file_system_size', ERROR)
-            logger.log_value('Do not propagate exception', exception)
-            raise exception
-        except Exception as exception:
-            logger.log_value('Unable to save the standard file system size in', file_path)
-            logger.log_value('The exception is', exception)
-            message = 'Error. Unable to save the standard file system size.'
-            displayer.update_label('generate_page__update_file_system_size_message', message, True)
-            displayer.update_status('generate_page__update_file_system_size', ERROR)
-            logger.log_value('Do not propagate exception', exception)
-            return True  # (Error)
-
-    # 5. Installer / Live Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the installer file system size, such as:
-    # • minimal.standard.live.size
-    # • ubuntu-server-minimal.ubuntu-server.installer.size
-    # • etc.
+    # Calculate the installer file system size.
     if model.layout.installer_size_file_name:
-        # Calculate the size.
         file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.installer_size_file_name)
-        size_5_in_bytes = int(file_utilities.read_file(file_path))
-        size_5_in_mib = size_5_in_bytes / MIB
-        size_5_in_gib = size_5_in_bytes / GIB
-        logger.log_value('The installer Linux file system size is', f'{locale.format_string("%.2f", size_5_in_gib, True)} GiB ({size_5_in_bytes:n} bytes)')
+        size_2_in_bytes = int(file_utilities.read_file(file_path))
+        size_2_in_mib = size_2_in_bytes / MIB
+        size_2_in_gib = size_2_in_bytes / GIB
+        logger.log_value('The installer Linux file system size is', f'{locale.format_string("%.2f", size_2_in_gib, True)} GiB ({size_2_in_bytes:n} bytes)')
 
-    # 6. Generic Installer Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the installer generic file system size, such as:
-    # • ubuntu-server-minimal.ubuntu-server.installer.generic.size
-    # • etc.
+    # Calculate the generic installer file system size.
     if model.layout.installer_generic_size_file_name:
-        # Calculate the size.
         file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.installer_generic_size_file_name)
-        size_6_in_bytes = int(file_utilities.read_file(file_path))
-        size_6_in_mib = size_6_in_bytes / MIB
-        size_6_in_gib = size_6_in_bytes / GIB
+        size_3_in_bytes = int(file_utilities.read_file(file_path))
+        size_3_in_mib = size_3_in_bytes / MIB
+        size_3_in_gib = size_3_in_bytes / GIB
         logger.log_value(
             'The generic installer Linux file system size is',
-            f'{locale.format_string("%.2f", size_6_in_gib, True)} GiB ({size_6_in_bytes:n} bytes)')
+            f'{locale.format_string("%.2f", size_3_in_gib, True)} GiB ({size_3_in_bytes:n} bytes)')
 
-    # 7. Total File System Size
-    # For all versions of Ubuntu create the file system size, such as:
-    # • filesystem.size
-    # Size_3 is the size of the customized file system. For older
-    # versions of Ubuntu, size_7 is the same as size_3 because size_4,
-    # size_5, and size_6 are zero.
-    # The value for model.layout.size_file_name is always explicitly set
-    # as valid on the Extract page, so this condition will always be
-    # true.
+    # Calculate the file system size.
+    size_4_in_bytes = size_1_in_bytes + \
+                      size_2_in_bytes + \
+                      size_3_in_bytes
+    size_4_in_mib = size_4_in_bytes / MIB
+    size_4_in_gib = size_4_in_bytes / GIB
+    model.file_system_size = size_4_in_bytes
+    logger.log_value('The Linux file system size is', f'{locale.format_string("%.2f", size_4_in_gib, True)} GiB ({size_4_in_bytes:n} bytes)')
+    if size_4_in_bytes > GIB:
+        message = f' The Linux file system size is {locale.format_string("%.2f", size_4_in_gib, True)} GiB ({size_4_in_bytes:n} bytes).'
+    else:
+        message = f' The Linux file system size is {locale.format_string("%.2f", size_4_in_mib, True)} MiB ({size_4_in_bytes:n} bytes).'
+
+    # Write the minimal file system size.
+    if model.layout.minimal_size_file_name:
+        try:
+            file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.minimal_size_file_name)
+            file_utilities.write_line(str(size_1_in_bytes), file_path)
+        except InterruptException as exception:
+            logger.log_value('Unable to write the minimal file system size in', file_path)
+            logger.log_value('The exception is', exception)
+            message = 'Error. Unable to save the minimal file system size.'
+            displayer.update_label('generate_page__update_file_system_size_message', message, True)
+            displayer.update_status('generate_page__update_file_system_size', ERROR)
+            logger.log_value('Do not propagate exception', exception)
+            raise exception
+        except Exception as exception:
+            logger.log_value('Unable to write the minimal file system size in', file_path)
+            logger.log_value('The exception is', exception)
+            message = 'Error. Unable to save the minimal file system size.'
+            displayer.update_label('generate_page__update_file_system_size_message', message, True)
+            displayer.update_status('generate_page__update_file_system_size', ERROR)
+            logger.log_value('Do not propagate exception', exception)
+            return True  # (Error)
+
+    # Write the standard file system size.
+    if model.layout.standard_size_file_name:
+
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO:
+        # Remove this *comment* in the future. [2024-08-10]
+        #
+        # In Cubic version 2024.02.86, minimal size is generated, and
+        # standard size is copied from the original ISO.
+        # In Cubic version 2024.08.87, minimal size is generated, and
+        # standard size must be a link to this file.
+        # Therefore, delete standard size, if it exists, and create the
+        # link.
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
+        # Create a link from standard_size_file_name to minimal_size_file_name.
+        # Assume minimal_size_file_name exists.
+        directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
+        file_name = model.layout.minimal_size_file_name
+        link_name = model.layout.standard_size_file_name
+        _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
+        if signal_status:
+            # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
+            message = 'Error. Unable to link to the minimal file system size.'
+            displayer.update_label('generate_page__update_file_system_size_message', message, True)
+            displayer.update_status('generate_page__update_file_system_size', ERROR)
+            return True  # (Error)
+
+    # Write the file system size.
     if model.layout.size_file_name:
         try:
-            # Calculate the size.
-            # size_3 = Minimal Section (Customized)
-            # size_4 = Standard Section
-            # size_5 = Installer / Live Section
-            # size_6 = Generic Installer Section
-            # size_7 = Total File System Size
-            size_7_in_bytes = size_3_in_bytes + \
-                              size_4_in_bytes + \
-                              size_5_in_bytes + \
-                              size_6_in_bytes
-            size_7_in_mib = size_7_in_bytes / MIB
-            size_7_in_gib = size_7_in_bytes / GIB
-            model.file_system_size = size_7_in_bytes
-            logger.log_value('The Linux file system size is', f'{locale.format_string("%.2f", size_7_in_gib, True)} GiB ({size_7_in_bytes:n} bytes)')
-            # if size_7_in_bytes > GIB:
-            #     message = f' The Linux file system size is {locale.format_string("%.2f", size_7_in_gib, True)} GiB ({size_7_in_bytes:n} bytes).'
-            # else:
-            #     message = f' The Linux file system size is {locale.format_string("%.2f", size_7_in_mib, True)} MiB ({size_7_in_bytes:n} bytes).'
-
-            # Write the size.
             file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.size_file_name)
-            logger.log_value('Write the total file system size to', file_path)
-            file_utilities.write_line(str(size_7_in_bytes), file_path, True)
+            file_utilities.write_line(str(size_4_in_bytes), file_path)
         except InterruptException as exception:
-            logger.log_value('Unable to save file system size in', file_path)
+            logger.log_value('Unable to write file system size in', file_path)
             logger.log_value('The exception is', exception)
             message = 'Error. Unable to save file system size.'
             displayer.update_label('generate_page__update_file_system_size_message', message, True)
@@ -1109,7 +876,7 @@ def update_file_system_size():
             logger.log_value('Propagate exception', exception)
             raise exception
         except Exception as exception:
-            logger.log_value('Unable to save file system size in', file_path)
+            logger.log_value('Unable to write file system size in', file_path)
             logger.log_value('The exception is', exception)
             message = 'Error. Unable to save file system size.'
             displayer.update_label('generate_page__update_file_system_size_message', message, True)
@@ -1117,14 +884,6 @@ def update_file_system_size():
             logger.log_value('Do not propagate exception', exception)
             return True  # (Error)
 
-    # ------------------------------------------------------------------
-    # Success
-    # ------------------------------------------------------------------
-
-    if size_7_in_bytes > GIB:
-        message = f' The Linux file system size is {locale.format_string("%.2f", size_7_in_gib, True)} GiB ({size_7_in_bytes:n} bytes).'
-    else:
-        message = f' The Linux file system size is {locale.format_string("%.2f", size_7_in_mib, True)} MiB ({size_7_in_bytes:n} bytes).'
     displayer.update_label('generate_page__update_file_system_size_message', message, False)
     displayer.update_status('generate_page__update_file_system_size', OK)
     return False  # (No error)
@@ -1410,7 +1169,7 @@ def _update_installer_sources_yaml(yaml_items, path):
 #       Do we use a flag and/or break in all loops?
 def update_checksums():
 
-    # TODO: Should os.path.realpath be used for?...
+    # TODO: Should os.path.realpath should be used for?...
     #       1. checksums_file_path
     #       2. exclude_paths
 

@@ -49,7 +49,6 @@ import time
 from cubic.constants import BOLD_RED, NORMAL
 from cubic.constants import OK, ERROR, OPTIONAL, BULLET, PROCESSING, BLANK
 from cubic.constants import SLEEP_0125_MS, SLEEP_0250_MS, SLEEP_0500_MS, SLEEP_1000_MS
-from cubic.navigator import InterruptException
 from cubic.utilities import constructor
 from cubic.utilities import displayer
 from cubic.utilities import file_utilities
@@ -217,17 +216,6 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Specify remove files, if required by the installer.
-        # --------------------------------------------------------------
-
-        # Set important files that may not exist on the original ISO.
-        is_ubiquity = constructor.get_package_version('ubiquity', model.project.custom_root_directory)
-        is_calamares = constructor.get_package_version('calamares', model.project.custom_root_directory)
-        if is_ubiquity or is_calamares:
-            model.layout.standard_remove_file_name = 'filesystem.manifest-remove', True
-            model.layout.minimal_remove_file_name = 'filesystem.manifest-minimal-remove', True
-
-        # --------------------------------------------------------------
         # Create the removable packages list for a standard install.
         # --------------------------------------------------------------
 
@@ -244,7 +232,6 @@ def enter(action, old_page=None):
             removable_packages_list = file_utilities.read_lines(file_path)
         else:
             removable_packages_list = []
-
         count = populate_package_details_list_for_standard_install(model.package_details_list, removable_packages_list)
         logger.log_value('Number of installed packages matching standard install list', count)
         number_text = constructor.number_as_text(count)
@@ -264,15 +251,13 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         if model.layout.minimal_remove_file_name:
-            # If the file path does not exist, the packages list will be
-            # empty.
+            # If the file path does not exist, the packages list will be empty.
             file_path = os.path.join(model.project.custom_disk_directory, \
                                     model.layout.squashfs_directory, \
                                     model.layout.minimal_remove_file_name)
             removable_packages_list = file_utilities.read_lines(file_path)
         else:
             removable_packages_list = []
-
         count = populate_package_details_list_for_minimal_install(model.package_details_list, removable_packages_list)
         logger.log_value('Number of installed packages matching minimal install list', count)
         number_text = constructor.number_as_text(count)
@@ -1595,155 +1580,42 @@ def save_file_system_manifest_file(package_details_list):
 
     logger.log_label('Create new file system manifest file')
 
-    # 1. Casper Section
-    #    • N/A
-    # 2. General Section
-    #    • Customized
-    #    • Non-Overlay
-    #    • manifest_file_name
-    #    • Desktop, Server
-    #    • Versions not using overlay file system
-    #    • Ubuntu Server 21.04 Hirsute Hippo and older
-    #    • Ubuntu Desktop 22.10 Kinetic Kudu and older
-    # 3. Minimal Section
-    #    • Customized
-    #    • Overlay
-    #    • minimal_manifest_file_name
-    #    • Desktop, Server
-    #    • Versions using overlay file system
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 4. Standard Section
-    #    • Overlay
-    #    • standard_manifest_file_name
-    #    • Desktop, Server
-    #    • Versions using overlay file system
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 5. Installer / Live Section
-    #    • Overlay
-    #    • installer_manifest_file_name
-    #    • Desktop, Server
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
-    # 6. Generic Installer Section
-    #    • Overlay
-    #    • installer_generic_manifest_file_name
-    #    • Server only
-    #    • Ubuntu Server 21.10 Groovy Gorilla and newer
-    #    • Ubuntu Desktop 23.04 Lunar Lobster and newer
+    try:
+        if model.layout.minimal_squashfs_file_name:
+            file_name = model.layout.minimal_manifest_file_name
+        else:
+            file_name = model.layout.manifest_file_name
+        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, file_name)
 
-    # 1. Casper Section
-    # N/A
+        logger.log_value('Write file system manifest to', file_path)
+        with open(file_path, 'w') as file:
+            for package_details in package_details_list[:-1]:
+                # 0: is standard selected?
+                # 1: is minimal selected?
+                # 2: is minimal selected initial?
+                # 3: is minimal active?
+                # 4: package name
+                # 5: package version
+                package_name = package_details[4]
+                package_version = package_details[5]
+                file.write(f'{package_name}\t{package_version}\n')
+            if package_details:
+                package_details = package_details_list[-1]
+                file.write(f'{package_name}\t{package_version}')
+    except Exception as exception:
+        logger.log_value('Do not propagate exception', exception)
+        return True  # (Error)
+    if not os.path.exists(file_path):
+        return True  # (Error)
 
-    # 2. General Section
-    # For all versions of Ubuntu, create the file system manifest, such as:
-    # • filesystem.manifest
-    # • squashfs.manifest
-    # • etc.
-    # The value for model.layout.manifest_file_name is always explicitly
-    # set as valid on the Extract page, so this condition will always be
-    # true.
-    if model.layout.manifest_file_name:
-        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.manifest_file_name)
-        try:
-            logger.log_value('Write the file system manifest to', file_path)
-            with open(file_path, 'w') as file:
-                for package_details in package_details_list[:-1]:
-                    # 0: is standard selected?
-                    # 1: is minimal selected?
-                    # 2: is minimal selected initial?
-                    # 3: is minimal active?
-                    # 4: package name
-                    # 5: package version
-                    package_name = package_details[4]
-                    package_version = package_details[5]
-                    file.write(f'{package_name}\t{package_version}\n')
-                if package_details:
-                    package_details = package_details_list[-1]
-                    file.write(f'{package_name}\t{package_version}')
-        except InterruptException as exception:
-            logger.log_value('Unable to write the file system manifest in', file_path)
-            logger.log_value('The exception is', exception)
-            # message = 'Error. Unable to save the file system manifest.'
-            # displayer.update_label('prepare_page__save_package_manifest_message', message, True)
-            # displayer.update_status('prepare_page__save_package_manifest', ERROR)
-            logger.log_value('Do not propagate exception', exception)
-            raise exception
-        except Exception as exception:
-            logger.log_value('Unable to write the file system manifest in', file_path)
-            logger.log_value('The exception is', exception)
-            # message = 'Error. Unable to save the standard file system manifest.'
-            # displayer.update_label('prepare_page__save_package_manifest_message', message, True)
-            # displayer.update_status('prepare_page__save_package_manifest', ERROR)
-            logger.log_value('Do not propagate exception', exception)
+    # Create a link to minimal_manifest_file_name from manifest_file_name.
+    if model.layout.minimal_squashfs_file_name:
+        directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
+        file_name = model.layout.minimal_manifest_file_name
+        link_name = model.layout.manifest_file_name
+        _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
+        if signal_status:
             return True  # (Error)
-
-    # 3. Minimal Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the file system manifest, such as:
-    # • minimal.manifest
-    # • ubuntu-server-minimal.manifest
-    # • etc.
-    if model.layout.minimal_manifest_file_name:
-        source_file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.manifest_file_name)
-        target_file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.minimal_manifest_file_name)
-        logger.log_value('Write the file system manifest to', target_file_path)
-        file_utilities.copy_file(source_file_path, target_file_path)
-        if not os.path.isfile(target_file_path):
-            logger.log_value('Unable to write the file system manifest in', target_file_path)
-            return True  # (Error)
-
-    # 4. Standard Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the file system manifest, such as:
-    # • minimal.standard.manifest
-    # • ubuntu-server-minimal.ubuntu-server.manifest
-    # • etc.
-    if model.layout.standard_manifest_file_name:
-        try:
-            file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.standard_manifest_file_name)
-            logger.log_value('Write the standard file system manifest to', file_path)
-            file_utilities.write_line(f'# See {model.layout.manifest_file_name}', file_path)
-        except InterruptException as exception:
-            logger.log_value('Unable to write the standard file system manifest in', file_path)
-            logger.log_value('The exception is', exception)
-            # message = 'Error. Unable to save the standard file system manifest.'
-            # displayer.update_label('prepare_page__save_package_manifest_message', message, True)
-            # displayer.update_status('prepare_page__save_package_manifest', ERROR)
-            logger.log_value('Do not propagate exception', exception)
-            raise exception
-        except Exception as exception:
-            logger.log_value('Unable to write the standard file system manifest in', file_path)
-            logger.log_value('The exception is', exception)
-            # message = 'Error. Unable to save the standard file system manifest.'
-            # displayer.update_label('prepare_page__save_package_manifest_message', message, True)
-            # displayer.update_status('prepare_page__save_package_manifest', ERROR)
-            logger.log_value('Do not propagate exception', exception)
-            return True  # (Error)
-
-    # 5. Installer / Live Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the installer file system manifest, such as:
-    # • minimal.standard.live.manifest
-    # • ubuntu-server-minimal.ubuntu-server.installer.manifest
-    # • etc.
-    if model.layout.installer_manifest_file_name:
-        # The installer / live file system was not extracted, and
-        # the corresponding manifest file was copied from the
-        # original ISO, so there is no need to write it.
-        pass
-
-    # 6. Generic Installer Section
-    # For newer versions of Ubuntu that use overlay file systems,
-    # create the installer generic file system manifest, such as:
-    # • ubuntu-server-minimal.ubuntu-server.installer.generic.manifest
-    # • etc.
-    if model.layout.installer_generic_manifest_file_name:
-        # The generic installer / live file system was not
-        # extracted, and the corresponding manifest file was copied
-        # from the original ISO, so there is no need to write it.
-        pass
 
     return False  # (No Error)
 

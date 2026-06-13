@@ -1,5 +1,15 @@
 cubic (2026.06) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
 
+  * Issues fixed in version 2026.06.105:
+
+  - Fixed Bug GH:#481, Autoinstall does not run for Cubic version 2026.06.104.
+  - Reverted codebase to version 2026.05.103 with minor changes.
+  - Reverted logic on the Extract page to copy original ISO files.
+  - Reverted logic on the Prepare page for saving file system manifests.
+  - Reverted logic on the Generate page for creating the squashfs file and the
+    file system size files.
+  - Removed check for Ubiquity or Calamares on the Prepare page.
+
   * Issues fixed in version 2026.06.104:
 
   - Changed constant variable name from "CUBIC_VERSION_" to "CONFIG_VERSION_" to
@@ -693,4 +703,4 @@ cubic (2026.06) stonking resolute questing plucky oracular noble mantic lunar ki
     customized OS.
   - Merged from Experimental branch, revision 19
 
- -- PJ Singh <psingh.cubic@gmail.com>  Sat, 06 Jun 2026 18:19:41 -0400
+ -- PJ Singh <psingh.cubic@gmail.com>  Sat, 13 Jun 2026 16:35:20 -0400
