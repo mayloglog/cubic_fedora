@@ -755,7 +755,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="icon-name">folder</property>
-            <property name="icon_size">6</property>
+            <property name="icon-size">6</property>
           </object>
           <packing>
             <property name="left-attach">0</property>
@@ -854,7 +854,7 @@
         </child>
       </object>
     </child>
-    <child type="label_item">
+    <child type="label-item">
       <placeholder/>
     </child>
   </object>
@@ -1501,7 +1501,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="stock">gtk-missing-image</property>
-            <property name="icon_size">6</property>
+            <property name="icon-size">6</property>
           </object>
           <packing>
             <property name="left-attach">0</property>

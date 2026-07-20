@@ -46,6 +46,7 @@ import sys
 import time
 
 from cubic.constants import BOLD_RED, NORMAL
+from cubic.constants import FIFTY_PERCENT
 from cubic.constants import FINAL_PERCENT
 from cubic.constants import GAP
 from cubic.constants import MIB, GIB, MAXIMUM_DISK_SIZE_BYTES, MAXIMUM_DISK_SIZE_GIB
@@ -185,7 +186,61 @@ def enter(action, old_page=None):
 
         displayer.update_status('generate_page__create_squashfs', PROCESSING)
         time.sleep(SLEEP_0500_MS)
-        is_error = create_squashfs()
+
+        if model.layout.minimal_squashfs_file_name:
+
+            total_files = 2
+
+            # Root environment
+            file_number = 0  # 1
+            source_file_path = model.project.custom_root_directory
+            directory = model.layout.squashfs_directory
+            file_name = model.layout.minimal_squashfs_file_name
+            target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+            is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
+            if is_error: return  # Stay on this page.
+            logger.log_value('Done compressing', f'{file_number + 1} of {total_files}: {file_name}')
+
+            # Live environment
+            file_number = 1  # 2
+            source_file_path = model.project.custom_live_directory
+            directory = model.layout.squashfs_directory
+            file_name = model.layout.installer_squashfs_file_name
+            target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+            is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
+            if is_error: return  # Stay on this page.
+            logger.log_value('Done compressing', f'{file_number + 1} of {total_files}: {file_name}')
+
+            # TODO: Convert this into a function.
+            # Create a link to minimal_squashfs_file_name from standard_squashfs_file_name.
+            directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
+            file_name = model.layout.minimal_squashfs_file_name
+            link_name = model.layout.standard_squashfs_file_name
+            _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
+            if signal_status:
+                # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
+                message = 'Error. Unable to link to the standard Linux file system.'
+                displayer.update_label('generate_page__create_squashfs_message', message, True)
+                displayer.update_status('generate_page__create_squashfs', ERROR)
+                # return True  # (Error)
+                return
+
+        else:
+
+            total_files = 1
+
+            # Root environment
+            file_number = 0  # 1
+            source_file_path = model.project.custom_root_directory
+            directory = model.layout.squashfs_directory
+            file_name = model.layout.squashfs_file_name
+            target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+            is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
+
+        message = 'Success.'
+        displayer.update_label('generate_page__create_squashfs_message', message, False)
+        displayer.update_status('generate_page__create_squashfs', OK)
+
         sys.stdout.flush()  # Flush the output before proceeding.
         if is_error: return  # Stay on this page.
         time.sleep(SLEEP_0500_MS)
@@ -527,7 +582,102 @@ def _copy_kernel_file(source_file_path, target_file_path, user, file_number, tot
 # ----------------------------------------------------------------------
 
 
-def create_squashfs():
+def create_squashfs(source_file_path, target_file_path, file_number, total_files):
+
+    logger.log_label('Compress the Linux file system')
+    logger.log_value('The source file path is', source_file_path)
+    logger.log_value('The target file path is', target_file_path)
+
+    message = f'Using {model.options.compression} compression.'
+    displayer.update_label('generate_page__create_squashfs_message', message, False)
+
+    if total_files > 1:
+        file_number_text = constructor.number_as_text(file_number + 1)
+        total_files_text = constructor.number_as_text(total_files)
+        message = f'Compressing Linux file system {file_number_text} of {total_files_text}.'
+    else:
+        message = 'Compressing the Linux file system.'
+    displayer.update_label('generate_page__create_squashfs_message', message, False)
+
+    # The total number of remaining compress steps, excluding the first
+    # compress step. This value is only used when there is more than one
+    # file to compress.
+    total_remaining_steps = (total_files - 1) * 2
+
+    # The number of the current compress step, excluding the first
+    # compress step. This value is only used when there is more than one
+    # file to compress.
+    remaining_step_number = (file_number * 2) - 2
+
+    # Create the standard squashfs file, such as:
+    # • filesystem.squashfs
+    # • minimal.standard.squashfs
+    # • ubuntu-server-minimal.ubuntu-server.squashfs
+    # • etc.
+
+    # Pkexec is required.
+    program = os.path.join(model.application.directory, 'commands', 'compress-root')
+    command = ['pkexec', program, source_file_path, target_file_path, model.options.compression]
+
+    # Show % in progress by setting text to None.
+    # displayer.update_progress_bar_text('generate_page__create_squashfs_progress_bar', None)
+    displayer.update_progress_bar_text('generate_page__create_squashfs_progress_bar', f'0.0{GAP}%')
+
+    # The progress callback function.
+    def progress_callback(percent):
+        # total_percent = Start % + Δ %
+        if total_files == 1:
+            # Case for a single file: Use the entire progress bar.
+            total_percent = percent
+        elif file_number == 0:
+            # Case for the first file: Use the first half of the
+            # progress bar when there is more than one file to compress.
+            # Allocate a significant portion of the progress bar to the
+            # first file because it is usually the largest and takes
+            # the longest to compress.
+            total_percent = percent / 2
+        else:
+            # Case for subsequent files: use the second half of the
+            # progress bar, and split it equally between all remaining
+            # compress steps.
+            total_percent = (FIFTY_PERCENT) +                                                 \
+                            (FIFTY_PERCENT * remaining_step_number / total_remaining_steps) + \
+                            (percent / 2 / total_remaining_steps)
+        # displayer.update_progress_bar_percent('generate_page__create_squashfs_progress_bar', total_percent)
+        displayer.update_progress_bar_text('generate_page__create_squashfs_progress_bar', f'{locale.format_string("%.1f", total_percent, True)}{GAP}%')
+        displayer.update_progress_bar_percent('generate_page__create_squashfs_progress_bar', total_percent)
+        if total_percent % 5 == 0:
+            logger.log_value('Completed', f'{total_percent:n}%')
+
+    try:
+        track_progress(command, progress_callback)
+    except InterruptException as exception:
+        if 'No space left on device' in str(exception):
+            # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
+            message = 'Error. Not enough space on the disk.'
+        else:
+            # message = '<span foreground="red">Error. Unable to create the compressed Linux file system.</span>'
+            message = 'Error. Unable to create the compressed Linux file system.'
+        displayer.update_label('generate_page__create_squashfs_message', message, True)
+        displayer.update_status('generate_page__create_squashfs', ERROR)
+        logger.log_value('Propagate exception', exception)
+        raise exception
+    except Exception as exception:
+        if 'No space left on device' in str(exception):
+            # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
+            message = 'Error. Not enough space on the disk.'
+        else:
+            # message = '<span foreground="red">Error. Unable to create the compressed Linux file system.</span>'
+            message = 'Error. Unable to create the compressed Linux file system.'
+        displayer.update_label('generate_page__create_squashfs_message', message, True)
+        displayer.update_status('generate_page__create_squashfs', ERROR)
+        logger.log_value('Do not propagate exception', exception)
+        return True  # (Error)
+
+    return False  # (No error)
+
+
+def create_squashfs_ORIGINAL():
 
     logger.log_label('Compress the Linux file system')
 
@@ -977,30 +1127,83 @@ def _update_disk_name():
         logger.log_value('A new file will be created', file_path)
 
     # Create the new lines.
-    new_lines = []
-    # Append the new disk name line.
-    line = f'#define DISKNAME  {model.custom.iso_disk_name}'
-    new_lines.append(line)
-    logger.log_value('Update disk name', line)
-    # Append the new disk note line.
+
+    # Create the new disk name line.
+    # Examples:
+    # • #define DISKNAME  Ubuntu 8.04.4 "Hardy Heron" - Release amd64
+    # • #define DISKNAME  Ubuntu 14.04.6 LTS "Trusty Tahr" - Release i386
+    # • #define DISKNAME  Ubuntu 14.04.6 2026.07.12 LTS "Custom Trusty Tahr"
+    # • #define DISKNAME  Ubuntu 26.04.0 2026.06.27 amd64 "Custom Resolute Raccoon"
+    disk_name_line = f'#define DISKNAME  {model.custom.iso_disk_name}'
+
+    # Create the new disk note.
+    # Examples:
+    # • #define DISKNOTE  Generated using Cubic version 2026.06.105 on 2026-07-12 16:40 based on ubuntu-14.04.6-desktop-amd64.iso
+    # • #define DISKNOTE  Generated using Cubic version 2026.06.105 on 2026-06-30 19:32 based on ubuntu-26.04-desktop-amd64.iso
     display_version = constructor.get_display_version(model.application.cubic_version)
     # Use the modify date from the model.
-    line = f'#define DISKNOTE  Generated using Cubic version {display_version} on {model.project.modify_date} based on {model.original.iso_file_name}'
-    new_lines.append(line)
-    logger.log_value('Update disk note', line)
-    # Append only existing lines that should be retained.
+    disk_note_line = f'#define DISKNOTE  Generated using Cubic version {display_version} on {model.project.modify_date} based on {model.original.iso_file_name}'
+
+    # Get the architecture of the host, since the architecture of the
+    # iso being customized must match the architecture of the host.
+    architecture = constructor.get_architecture()
+    if not architecture:
+        architecture = 'amd64'  # Assume "amd64" is the default.
+        logger.log_value('Error', f'Unable to get the architecture; assume {architecture} architecture.')
+
+    # Create the new architecture #1 line.
+    # Examples:
+    # • #define ARCH  i386
+    # • #define ARCH  amd64
+    arch_1_line = f'#define ARCH  {architecture}'
+
+    # Create the new architecture #2 line.
+    # Examples:
+    # • #define ARCHi386  1
+    # • #define ARCHamd64  1
+    arch_2_line = f'#define ARCH{architecture}  1'
+
+    # Add new lines.
+    new_lines = []
+
+    # Add disk name as the 1st line.
+    new_lines.append(disk_name_line)
+    logger.log_value('Update disk name', disk_name_line)
+
+    # Add disk note as the 2nd line.
+    new_lines.append(disk_note_line)
+    logger.log_value('Update disk note', disk_note_line)
+
+    # Add architecture 1 as the 3rd line.
+    new_lines.append(arch_1_line)
+    logger.log_value('Update architecture 1', arch_1_line)
+
+    # Add architecture 2 as the 4th line.
+    new_lines.append(arch_2_line)
+    logger.log_value('Update architecture 2', arch_2_line)
+
+    # Append remaining lines.
     for line in lines:
         if 'DISKNAME' in line:
-            # Exclude old disk name line.
+            # Exclude the original disk name line, since the new line
+            # was already added.
             pass
         elif 'DISKNOTE' in line:
-            # Exclude old disk note line.
+            # Exclude the original disk note line, since the new line
+            # was already added.
             pass
-        elif 'CUBIC_INFO' in line:
-            # TODO: Remove this block in a future release (2012-12-11).
+        elif 'ARCH' in line:
+            # Exclude the original architecture 1 line and the original
+            # architecture 2 line, since the new lines was already added.
             pass
+        # elif re.search(r'ARCH\s+', line):
+        #     Exclude the original architecture 1 line, since the new
+        #     line was already added.
+        # elif re.search(r'ARCH\S+', line):
+        #     Exclude the original architecture 2 line, since the new
+        #     line was already added.
         else:
-            # Retain existing line.
+            # Retain the existing line.
             new_lines.append(line.strip())
 
     # Create a new README.diskdefines file.

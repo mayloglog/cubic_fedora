@@ -98,11 +98,11 @@ directory=${2}
 # and in the virtual environment...
 #     /etc/resolv.conf --> /run/resolvconf/resolv.conf
 #
-# systemd-nspawn                    \
-# --quiet                           \
-# --notify-ready=yes                \
-# --bind-ro="/etc/resolv.conf"      \
-# --machine "${machine_name}"       \
+# systemd-nspawn                \
+# --quiet                       \
+# --notify-ready=yes            \
+# --bind-ro="/etc/resolv.conf"  \
+# --machine "${machine_name}"   \
 # --directory "${directory}"
 
 # if [[ -L ${bind_path} ]]; then
@@ -116,21 +116,21 @@ if [[ -e ${bind_path} ]]; then
     # container's resolv.conf file is a link, then the host's
     # resolv.conf will be bind mounted to the target of container's
     # link.
-    systemd-nspawn                  \
-    --quiet                         \
-    --notify-ready=yes              \
-    --register=yes                  \
-    --bind-ro="${bind_path}"        \
-    --machine="${machine_name}"     \
+    systemd-nspawn              \
+    --quiet                     \
+    --notify-ready=yes          \
+    --register=yes              \
+    --bind-ro="${bind_path}"    \
+    --machine="${machine_name}" \
     --directory="${directory}"
 else
     # Automatically handle resolv.conf as outlined in:
     # https://www.freedesktop.org/software/systemd/man/systemd-nspawn.html#--resolv-conf=
-    systemd-nspawn                  \
-    --quiet                         \
-    --notify-ready=yes              \
-    --register=yes                  \
-    --machine="${machine_name}"     \
+    systemd-nspawn              \
+    --quiet                     \
+    --notify-ready=yes          \
+    --register=yes              \
+    --machine="${machine_name}" \
     --directory="${directory}"
 fi
 exit_code=$?

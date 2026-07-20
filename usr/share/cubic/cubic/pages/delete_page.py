@@ -254,8 +254,9 @@ def leave(action, new_page=None):
         # 4. model.project.configuration
         # 5. model.project.iso_mount_point
         # 6. model.project.custom_root_directory
-        # 7. model.project.custom_temp_directory
-        # 8. model.project.custom_disk_directory
+        # 7. model.project.custom_live_directory
+        # 8. model.project.custom_temp_directory
+        # 9. model.project.custom_disk_directory
 
         displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
 
@@ -367,10 +368,15 @@ def delete_project_files_TEST():
 
     # ------------------------------------------------------------------
     # Delete the custom root directory.
+    # Delete the custom live directory.
     # Delete the custom temp directory.
     # ------------------------------------------------------------------
 
     logger.log_value('Delete the custom root directory', model.project.custom_root_directory)
+    logger.log_value('Delete the custom live directory', model.project.custom_live_directory)
+    logger.log_value('Delete the custom temp directory', model.project.custom_temp_directory)
+    logger.log_value('Delete the backup root directory', model.project.backup_root_directory)
+    logger.log_value('Delete the backup live directory', model.project.backup_live_directory)
     displayer.update_status('delete_page__custom_root_directory', PROCESSING)
     time.sleep(SLEEP_1000_MS)
     displayer.update_status('delete_page__custom_root_directory', OK)
@@ -472,17 +478,32 @@ def delete_project_files():
 
     # ------------------------------------------------------------------
     # Delete the custom root directory.
+    # Delete the custom live directory.
     # Delete the custom temp directory.
+    # Delete the backup root directory.
+    # Delete the backup live directory.
     # ------------------------------------------------------------------
 
     logger.log_value('Delete the custom root directory', model.project.custom_root_directory)
+    logger.log_value('Delete the custom live directory', model.project.custom_live_directory)
+    logger.log_value('Delete the custom temp directory', model.project.custom_temp_directory)
+    logger.log_value('Delete the backup root directory', model.project.backup_root_directory)
+    logger.log_value('Delete the backup live directory', model.project.backup_live_directory)
+
     displayer.update_status('delete_page__custom_root_directory', PROCESSING)
     time.sleep(SLEEP_1000_MS)
 
-    if os.path.exists(model.project.custom_root_directory) or os.path.exists(model.project.custom_temp_directory):
+    if os.path.exists(model.project.custom_root_directory) or \
+       os.path.exists(model.project.custom_live_directory) or \
+       os.path.exists(model.project.custom_temp_directory) or \
+       os.path.exists(model.project.backup_root_directory) or \
+       os.path.exists(model.project.backup_live_directory):
         result_1, exit_status_1, signal_status_1 = file_utilities.delete_path_as_root(model.project.custom_root_directory)
-        result_2, exit_status_2, signal_status_2 = file_utilities.delete_path_as_root(model.project.custom_temp_directory)
-        if not (signal_status_1 and signal_status_2):
+        result_2, exit_status_2, signal_status_2 = file_utilities.delete_path_as_root(model.project.custom_live_directory)
+        result_3, exit_status_3, signal_status_3 = file_utilities.delete_path_as_root(model.project.custom_temp_directory)
+        result_4, exit_status_4, signal_status_4 = file_utilities.delete_path_as_root(model.project.backup_root_directory)
+        result_5, exit_status_5, signal_status_5 = file_utilities.delete_path_as_root(model.project.backup_live_directory)
+        if not (signal_status_1 and signal_status_2 and signal_status_3 and signal_status_4 and signal_status_5):
             displayer.update_status('delete_page__custom_root_directory', OK)
             displayer.update_label('delete_page__custom_root_directory_message', '', False)
         else:
@@ -608,6 +629,7 @@ def initialize_model():
     # model.project.configuration = None
     # model.project.iso_mount_point = None
     # model.project.custom_root_directory = None
+    # model.project.custom_live_directory = None
     # model.project.custom_temp_directory = None
     # model.project.custom_disk_directory = None
 

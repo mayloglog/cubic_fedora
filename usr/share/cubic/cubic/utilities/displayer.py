@@ -58,7 +58,7 @@ from gi.repository import Gtk
 from gi.repository import GtkSource
 from gi.repository import Pango
 
-from cubic.constants import OK, ERROR, BULLET, PROCESSING, BLANK
+from cubic.constants import OK, ERROR, BULLET, PROCESSING, BLANK, INFORMATION
 from cubic.utilities import logger
 from cubic.utilities import model
 
@@ -70,7 +70,15 @@ logger.log_value('Using GtkSource version', GtkSource._version)
 
 # Status icons may be referenced using the constants:
 # OK, ERROR, OPTIONAL, BULLET, PROCESSING, BLANK
-icons = ['cubic-ok-symbolic', 'cubic-error-symbolic', 'cubic-optional-symbolic', 'cubic-bullet-symbolic', 'cubic-blank-symbolic', 'cubic-blank-symbolic']
+icons = [
+    'cubic-ok-symbolic',
+    'cubic-error-symbolic',
+    'cubic-optional-symbolic',
+    'cubic-bullet-symbolic',
+    'cubic-blank-symbolic',
+    'cubic-blank-symbolic',
+    'cubic-information-symbolic'
+]
 
 # Get the system mono-spaced font.
 settings = Gio.Settings.new('org.gnome.desktop.interface')
@@ -1116,6 +1124,19 @@ def select_tree_view_row(tree_view_name, row_number):
 ########################################################################
 
 
+def clear_list_store(list_store_name):
+    """
+    Remove all rows from the list store.
+
+    Arguments:
+    list_store_name : str
+        The name of the list store.
+    """
+
+    list_store = model.builder.get_object(list_store_name)
+    GLib.idle_add(Gtk.ListStore.clear, list_store)
+
+
 def update_list_store(list_store_name, data_list):
     """
     Add the list of data to to the list store.
@@ -1150,7 +1171,7 @@ def _update_list_store_rows(list_store, data_list):
         list_store.append(data)
 
 
-def update_list_store_progress_bar_percent(list_store_name, row_number, percent):
+def update_list_store_progress_bar_percent(list_store_name, row_number, column_number, percent):
     """
     Update progress bar percent for the specified row in the list store.
     The progress bar must be in the first column of the list store.
@@ -1160,15 +1181,17 @@ def update_list_store_progress_bar_percent(list_store_name, row_number, percent)
         The name of the list store.
     row_number : int
         The row number to update.
+    column_number : int
+        The column number of the progress bar in the row list.
     percent : float
         The percent complete. The value must be 0.00% to 100.00%.
     """
 
     list_store = model.builder.get_object(list_store_name)
-    GLib.idle_add(_update_list_store_progress_bar_percent, list_store, row_number, percent)
+    GLib.idle_add(_update_list_store_progress_bar_percent, list_store, row_number, column_number, percent)
 
 
-def _update_list_store_progress_bar_percent(list_store, row_number, percent):
+def _update_list_store_progress_bar_percent(list_store, row_number, column_number, percent):
     """
     This function must be invoked using GLib.idle_add().
 
@@ -1180,10 +1203,55 @@ def _update_list_store_progress_bar_percent(list_store, row_number, percent):
         The list store.
     row_number : int
         The row number to update.
+    column_number : int
+        The column number of the progress bar in the row list.
     percent : float
         The percent complete. The value must be 0.00% to 100.00%.
     """
 
     # The progress bar is at position 0 (i.e. the first column) in the
     # row list.
-    list_store[row_number][0] = percent
+    list_store[row_number][column_number] = percent
+
+
+def update_list_store_progress_bar_text(list_store_name, row_number, column_number, text):
+    """
+    Update progress bar text for the specified row in the list store.
+    The progress bar must be in the first column of the list store.
+
+    Arguments:
+    list_store_name : str
+        The name of the list store.
+    row_number : int
+        The row number to update.
+    column_number : int
+        The column number of the progress bar in the row list.
+    text : str
+        The new text.
+    """
+
+    list_store = model.builder.get_object(list_store_name)
+    GLib.idle_add(_update_list_store_progress_bar_text, list_store, row_number, column_number, text)
+
+
+def _update_list_store_progress_bar_text(list_store, row_number, column_number, text):
+    """
+    This function must be invoked using GLib.idle_add().
+
+    Update progress bar text for the specified row in the list store.
+    The progress bar must be in the first column of the list store.
+
+    Arguments:
+    list_store : Gtk.ListStore
+        The list store.
+    row_number : int
+        The row number to update.
+    column_number : int
+        The column number of the progress bar in the row list.
+    text : str
+        The new text.
+    """
+
+    # The progress bar is at position 0 (i.e. the first column) in the
+    # row list.
+    list_store[row_number][column_number] = text

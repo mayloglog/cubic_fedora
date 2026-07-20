@@ -67,7 +67,8 @@ enter(action, old_page=None)
 • Return None to stay on the current page.
 • Return an action (such as 'next') to automatically transfer to a page
   corresponding to the action (as specified in the navigatior module's
-  get_new_page() function).
+  get_new_page() function). The leave() function is bypassed for
+  automatic transfers.
 
 leave(action, new_page=None)
 • Process the current page after a user action (such as clicking the
@@ -790,6 +791,9 @@ def get_new_page(action, page):
         elif action == 'next':
             new_page_name = 'extract_page'
             effect = SLIDE_LEFT
+        elif action == 'next-snaps':
+            new_page_name = 'snaps_page'
+            effect = SLIDE_LEFT
         elif action == 'next-terminal':
             new_page_name = 'terminal_page'
             effect = SLIDE_LEFT
@@ -830,6 +834,25 @@ def get_new_page(action, page):
             new_page_name = 'project_page'
             effect = SLIDE_RIGHT
         elif action == 'next':
+            new_page_name = 'snaps_page'
+            effect = SLIDE_LEFT
+        elif action == 'next-terminal':
+            new_page_name = 'terminal_page'
+            effect = SLIDE_LEFT
+        elif action == 'quit':
+            new_page_name = None
+            effect = SLIDE_NONE
+        else:
+            raise InvalidActionException(action, page)
+
+    elif page_name == 'snaps_page':
+        if action == 'back':
+            new_page_name = 'project_page'
+            effect = SLIDE_RIGHT
+        elif action == 'error':
+            new_page_name = 'snaps_page'
+            effect = SLIDE_NONE
+        elif action == 'next':
             new_page_name = 'terminal_page'
             effect = SLIDE_LEFT
         elif action == 'quit':
@@ -840,6 +863,9 @@ def get_new_page(action, page):
 
     elif page_name == 'terminal_page':
         if action == 'back':
+            new_page_name = 'snaps_page'
+            effect = SLIDE_RIGHT
+        elif action == 'back-project':
             new_page_name = 'project_page'
             effect = SLIDE_RIGHT
         elif action == 'copy-terminal':

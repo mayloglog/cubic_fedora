@@ -48,8 +48,12 @@ import re
 import time
 import zlib
 
+from cubic.constants import BACKUP_LIVE_DIRECTORY, BACKUP_ROOT_DIRECTORY
 from cubic.constants import BLANK_VERSION_0000
-from cubic.constants import ISO_MOUNT_POINT, CUSTOM_ROOT_DIRECTORY, CUSTOM_TEMP_DIRECTORY, CUSTOM_DISK_DIRECTORY
+from cubic.constants import CUSTOM_DISK_DIRECTORY
+from cubic.constants import CUSTOM_LIVE_DIRECTORY, CUSTOM_ROOT_DIRECTORY
+from cubic.constants import CUSTOM_TEMP_DIRECTORY
+from cubic.constants import ISO_MOUNT_POINT
 from cubic.constants import LOG_FILE_NAME
 from cubic.constants import NUMBERS_LOWER_CASE, NUMBERS_TITLE_CASE
 from cubic.constants import OK
@@ -185,6 +189,29 @@ def get_plural(singular_text, plural_text, number):
     """
 
     return singular_text if number == 1 else plural_text
+
+
+def to_title(text):
+    """
+    Convert the specified text to title formmat.
+
+    Arguments:
+    text : str
+        Text that should be converted to a title.
+
+    Returns:
+    : str
+        The title text.
+    """
+
+    # return text.replace('_', ' ').replace('-', ' ').title()
+
+    title = re.sub(r'[_-]+', ' ', text)
+    title = re.sub(r'(?<=[A-Za-z])(?=[0-9])|(?<=[0-9])(?=[A-Za-z])', ' ', title)
+    title = re.sub(r'\s+', ' ', title).strip()
+    title = title.title()
+
+    return title
 
 
 def assemble_paths(*paths):
@@ -409,6 +436,21 @@ def get_kernel_version_ALTERNATIVE():
     result, exit_status, signal_status = execute_synchronous(command)
 
     return result
+
+
+def get_architecture():
+    """
+    Get the architecture of the host machine.
+
+    Returns:
+    : str
+        The architecture, or None if not available.
+    """
+
+    command = 'dpkg --print-architecture'
+    result, exit_status, signal_status = execute_synchronous(command)
+
+    return result if exit_status == OK else None
 
 
 def get_package_version(package_name, root_directory=os.path.sep):
@@ -1047,6 +1089,29 @@ def construct_custom_root_directory(project_directory):
     return custom_root_directory
 
 
+def construct_custom_live_directory(project_directory):
+    """
+    Construct the full file path for the custom live directory. This
+    directory is located in the Cubic project directory.
+
+    Arguments:
+    project_directory : str
+        The project directory.
+
+    Returns:
+    custom_live_directory : str
+        The full file path for the custom live directory.
+    """
+
+    # logger.log_label('Construct the custom live directory')
+    # logger.log_value('The project directory is', project_directory)
+
+    custom_live_directory = os.path.join(project_directory, CUSTOM_LIVE_DIRECTORY)
+    # logger.log_value('The constructed custom live directory is', custom_live_directory)
+
+    return custom_live_directory
+
+
 def construct_custom_temp_directory(project_directory):
     """
     Construct the full file path for the custom temp directory. This
@@ -1065,9 +1130,55 @@ def construct_custom_temp_directory(project_directory):
     # logger.log_value('The project directory is', project_directory)
 
     custom_temp_directory = os.path.join(project_directory, CUSTOM_TEMP_DIRECTORY)
-    # logger.log_value('The constructed custom root directory is', custom_temp_directory)
+    # logger.log_value('The constructed custom temp directory is', custom_temp_directory)
 
     return custom_temp_directory
+
+
+def construct_backup_root_directory(project_directory):
+    """
+    Construct the full file path for the backup root directory. This
+    directory is located in the Cubic project directory.
+
+    Arguments:
+    project_directory : str
+        The project directory.
+
+    Returns:
+    backup_root_directory : str
+        The full file path for the backup root directory.
+    """
+
+    # logger.log_label('Construct the backup root directory')
+    # logger.log_value('The project directory is', project_directory)
+
+    backup_root_directory = os.path.join(project_directory, BACKUP_ROOT_DIRECTORY)
+    # logger.log_value('The constructed backup root directory is', backup_root_directory)
+
+    return backup_root_directory
+
+
+def construct_backup_live_directory(project_directory):
+    """
+    Construct the full file path for the backup live directory. This
+    directory is located in the Cubic project directory.
+
+    Arguments:
+    project_directory : str
+        The project directory.
+
+    Returns:
+    backup_live_directory : str
+        The full file path for the backup live directory.
+    """
+
+    # logger.log_label('Construct the backup live directory')
+    # logger.log_value('The project directory is', project_directory)
+
+    backup_live_directory = os.path.join(project_directory, BACKUP_LIVE_DIRECTORY)
+    # logger.log_value('The constructed backup live directory is', backup_live_directory)
+
+    return backup_live_directory
 
 
 def construct_custom_disk_directory(project_directory):

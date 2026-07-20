@@ -41,6 +41,7 @@
 
 import glob
 import hashlib
+import json
 import magic
 import mimetypes
 import os
@@ -648,6 +649,55 @@ def _write_lines_2(lines, file_path):
             file.write(line)
 
 
+def read_json_file(file_path):
+    """
+    Read the contents of a json file.
+
+    Arguments:
+    file_path : str
+        The full path of the file to read.
+    Returns:
+    json_items : list or dict
+        A list or dict representing the json.
+    Raises:
+    : json.JSONDecodeError
+        The exception that occurred.
+    : json.UnicodeDecodeError
+        The exception that occurred.
+    : Exception
+        The exception that occurred.
+    """
+
+    # logger.log_label('Read json file')
+    logger.log_value('Read json file', file_path)
+
+    items = None
+    with open(file_path, 'r', encoding='utf-8') as file:
+        items = json.load(file)
+    return items
+
+
+def save_json_file(items, file_path):
+    """
+    Save the json file.
+
+    Arguments:
+    items : list or dict
+        List or dict representing the json.
+    file_path : string
+        The full path of the file to write to.
+    Raises:
+    : Exception
+        The exception that occurred.
+    """
+
+    # logger.log_label('Save json file')
+    logger.log_value('Save json file', file_path)
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(items, file, ensure_ascii=False, indent=2)
+
+
 def read_yaml_file(file_path):
     """
     Read the contents of a yaml file.
@@ -656,7 +706,7 @@ def read_yaml_file(file_path):
     file_path : str
         The full path of the file to read.
     Returns:
-    yaml_items : list or dict
+    items : list or dict
         A list or dict representing the yaml.
     Raises:
     : yaml.YAMLError
@@ -668,18 +718,18 @@ def read_yaml_file(file_path):
     # logger.log_label('Read yaml file')
     logger.log_value('Read yaml file', file_path)
 
-    yaml_items = None
-    with open(file_path) as file:
-        yaml_items = yaml.safe_load(file)
-    return yaml_items
+    items = None
+    with open(file_path, 'r', encoding='utf-8') as file:
+        items = yaml.safe_load(file)
+    return items
 
 
-def save_yaml_file(yaml_items, file_path):
+def save_yaml_file(items, file_path):
     """
     Save the yaml file.
 
     Arguments:
-    yaml_list : list or dict
+    items : list or dict
         List or dict representing the yaml.
     file_path : string
         The full path of the file to write to.
@@ -691,11 +741,11 @@ def save_yaml_file(yaml_items, file_path):
     # logger.log_label('Save yaml file')
     logger.log_value('Save yaml file', file_path)
 
-    with open(file_path, 'w') as file:
-        yaml.dump(yaml_items, file)
+    with open(file_path, 'w', encoding='utf-8') as file:
+        yaml.dump(items, file, encoding='utf-8', indent=4)
 
 
-def find_files_with_pattern(file_name_pattern, start_directory, follow_links=False):
+def find_files_with_name_01(file_name_pattern, start_directory, follow_links=False):
     r"""
     Recursively search files in the start directory that match the file
     name pattern, and return a list of matching file paths relative to
@@ -725,11 +775,13 @@ def find_files_with_pattern(file_name_pattern, start_directory, follow_links=Fal
         A list of matching file paths relative to the start directory.
     """
 
+    # Note: r""" is used in the docstring above to avoid "SyntaxWarning: invalid escape sequence '\.'"
+
     # Implementation note/warning: Do not use glob.glob(), because it
     # always follows symlinks when recursive=True, and this will fail
     # when recursive symlinks are encountered.
 
-    # logger.log_label('Find files')
+    # logger.log_label('Find files with name pattern')
     logger.log_value('Search for file name pattern', file_name_pattern)
     logger.log_value('In directory', start_directory)
 
@@ -809,6 +861,142 @@ def find_files_with_pattern(file_name_pattern, start_directory, follow_links=Fal
             file_path = os.path.join(directory_path, file_name)
             relative_file_path = os.path.relpath(file_path, start=start_directory)
             relative_file_paths.append(relative_file_path)
+
+    logger.log_value('Found', f'{len(relative_file_paths)} files')
+
+    return relative_file_paths
+
+
+def find_files_with_name(file_name_pattern, start_directory, follow_links=False):
+    r"""
+    Recursively search files in the start directory that match the file
+    name pattern, and return a list of matching file paths relative to
+    the start directory. If follow links is True, symlinks that do not
+    result in a recursive loop with their parent directory will also be
+    searched.
+
+    Warning: If follow links is True, recursive loops caused by symlinks
+    in sibling directories will cause this function to execute
+    indefinitely, crashing the application.
+
+    Arguments:
+    file_name_pattern : r-str
+        A regular expression pattern for the file name to search for,
+        such as "r'.*\.squashfs$'" or "r'.*\.txt$'".
+    start_directory : str
+        The full path of the directory to search in.
+    follow_links : boolean
+        True to follow symlinks.
+        False to not follow symlinks.
+        A symlink to a directory will be searched only if it does not
+        result in a recursive loop with its parent directory. The
+        default value is False.
+
+    Returns:
+    results : list
+        A list of matching file paths relative to the start directory.
+    """
+
+    # Note: r""" is used in the docstring above to avoid "SyntaxWarning: invalid escape sequence '\.'"
+
+    # Implementation note/warning: Do not use glob.glob(), because it
+    # always follows symlinks when recursive=True, and this will fail
+    # when recursive symlinks are encountered.
+
+    # logger.log_label('Find files with name pattern')
+    logger.log_value('Search for file name pattern', file_name_pattern)
+    logger.log_value('In directory', start_directory)
+
+    # Nested function (used below) to match the file name pattern.
+    def is_match(file_name):
+        """
+        Check if the file name matches the file name pattern.
+
+        Note: This function expects the file name pattern to be set
+        prior to invocation because filter() requires a function that
+        only takes a single argument.
+
+        Arguments:
+        file_name : str
+            The file name to check.
+
+        Returns:
+        : boolean
+            True if the file name matches the pattern.
+            False if the file name does not match the pattern.
+        """
+
+        # Convert escape sequences in file name (like \x.., \u....) into
+        # their corresponding utf-8 characters to facilitate the match.
+        #
+        # Some snap files on the file system have hex codes in their
+        # names. For example, "snap-store" is represented as
+        # "/etc/systemd/system/snap-snap\x2dstore-1270.mount," where the
+        # "-" has been replaced by the corresponding hex code, "/x2d".
+        # Re-encoding this file name to "snap-snap-store-1270.mount"
+        # allows the search string ".*snap-store.*" to find this file.
+        file_name = file_name.encode('utf-8').decode('unicode_escape')
+
+        return re.match(file_name_pattern, file_name)
+
+    relative_file_paths = []
+    for directory_path, directory_names, file_names in os.walk(start_directory, followlinks=follow_links):
+
+        if follow_links:
+
+            # Nested function to ensure the directory file path is not a
+            # recursive symlink.
+            def is_not_recursive(directory_name):
+                """
+                Check if a file path is not a recursive symlink. A link
+                is recursive if the link's target is a parent ancestor
+                of the link. A link and its target have the same parent
+                ancestor if the real path (the target of the link) is
+                the same as the common path between the target and the
+                link.
+
+                Warning: This function only detects loops where a
+                symlink in a child directory points to a parent
+                directory, but it can not detect complex recursive loops
+                involving symlinks in sibling directories.
+
+                Note: This function expects the parent directory path to
+                be set prior to invocation because filter() requires a
+                function that only takes a single argument.
+
+                Arguments:
+                file_path : str
+                    The simlink file path to check.
+
+                Returns:
+                : boolean
+                    True if the file path is not a simlink.
+                    True if the file path is not a recursive simlink.
+                    False if the file path is a recursive simlink.
+                """
+                file_path = os.path.join(directory_path, directory_name)
+                if os.path.islink(file_path):
+                    real_path = os.path.realpath(file_path)
+                    common_path = os.path.commonpath([real_path, file_path])
+                    if real_path == common_path:
+                        return False
+                return True
+
+            # Remove recursive symlinks from the directory names list.
+            # The caller can modify the directory names list in-place
+            # (perhaps using del or slice assignment), and walk() will
+            # only recurse into the sub-directories whose names remain
+            # in the directory names list.
+            # (See https://docs.python.org/3/library/os.html#os.walk)
+            directory_names[:] = list(filter(is_not_recursive, directory_names))
+
+        # Select files that match the file name pattern.
+        for file_name in filter(is_match, file_names):
+            file_path = os.path.join(directory_path, file_name)
+            relative_file_path = os.path.relpath(file_path, start=start_directory)
+            relative_file_paths.append(relative_file_path)
+
+    logger.log_value('Found', f'{len(relative_file_paths)} files')
 
     return relative_file_paths
 
@@ -1053,9 +1241,10 @@ def calculate_md5_hash_ORIGINAL(file_path, start_directory=os.path.sep, buffer_s
 
 def copy_file(source_file_path, target_file_path):
     """
-    Copy the source file to the target file path. If the target file
-    already exists, the source file will overwrite it without throwing
-    an exception.
+    Copy the source file path to the target file path. If the target
+    file already exists, the source file will overwrite it without
+    throwing an exception. If the target file path is a directory, the
+    source file will be copied into this directory.
 
     Arguments:
     source_file_path : str

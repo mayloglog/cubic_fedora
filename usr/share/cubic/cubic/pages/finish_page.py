@@ -449,12 +449,59 @@ def delete_project_files():
         pass
 
     #
+    # Delete the custom live directory.
+    #
+    logger.log_value('Delete the custom live directory', model.project.custom_live_directory)
+    # time.sleep(SLEEP_1000_MS)
+    if os.path.exists(model.project.custom_live_directory):
+        result, exit_status, signal_status = file_utilities.delete_path_as_live(model.project.custom_live_directory)
+        if not signal_status:
+            # OK
+            pass
+        else:
+            is_error = True
+    else:
+        # Skip
+        pass
+
+    #
     # Delete the custom temp directory.
     #
     logger.log_value('Delete the custom temp directory', model.project.custom_temp_directory)
     # time.sleep(SLEEP_1000_MS)
     if os.path.exists(model.project.custom_temp_directory):
         result, exit_status, signal_status = file_utilities.delete_path_as_root(model.project.custom_temp_directory)
+        if not signal_status:
+            # OK
+            pass
+        else:
+            is_error = True
+    else:
+        # Skip
+        pass
+    #
+    # Delete the backup root directory.
+    #
+    logger.log_value('Delete the backup root directory', model.project.backup_root_directory)
+    # time.sleep(SLEEP_1000_MS)
+    if os.path.exists(model.project.backup_root_directory):
+        result, exit_status, signal_status = file_utilities.delete_path_as_root(model.project.backup_root_directory)
+        if not signal_status:
+            # OK
+            pass
+        else:
+            is_error = True
+    else:
+        # Skip
+        pass
+
+    #
+    # Delete the backup live directory.
+    #
+    logger.log_value('Delete the backup live directory', model.project.backup_live_directory)
+    # time.sleep(SLEEP_1000_MS)
+    if os.path.exists(model.project.backup_live_directory):
+        result, exit_status, signal_status = file_utilities.delete_path_as_live(model.project.backup_live_directory)
         if not signal_status:
             # OK
             pass

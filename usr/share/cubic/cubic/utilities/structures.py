@@ -1045,3 +1045,51 @@ class IsoFieldsHistory:
             print()
         print('-' * 80)
         print()
+
+
+########################################################################
+# Config Info Class
+########################################################################
+
+
+class ConfigInfo:
+    """
+    A configuration object with corresponding source and backup file
+    paths.
+    """
+
+    configuration = None
+    source_path = None
+    backup_path = None
+
+    def __init__(self, configuration, source_path, backup_path):
+        self.configuration = configuration
+        self.source_path = source_path
+        self.backup_path = backup_path
+
+
+########################################################################
+# Path Pair Class
+########################################################################
+
+
+class PathPair:
+    """
+    A pair of paths that represent a source path and a backup path.
+    """
+
+    source_path = None
+    backup_path = None
+
+    def __init__(self, source_path, backup_path):
+        self.source_path = source_path
+        self.backup_path = backup_path
+
+    def __hash__(self):
+        return hash((self.source_path, self.backup_path))
+
+    def __eq__(self, other):
+        return (self.source_path, self.backup_path) == (other.source_path, other.backup_path)
+
+    def __repr__(self):
+        return str((self.source_path, self.backup_path))

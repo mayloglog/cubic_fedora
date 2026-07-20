@@ -51,7 +51,8 @@ import time
 
 from cubic.constants import BOLD_RED, NORMAL
 from cubic.constants import CONFIG_VERSION_2024
-from cubic.constants import FIFTY_PERCENT
+# from cubic.constants import FIFTY_PERCENT
+from cubic.constants import FINAL_PERCENT
 from cubic.constants import GAP
 from cubic.constants import IMAGE_FILE_NAME
 from cubic.constants import OK, ERROR, OPTIONAL, BULLET, PROCESSING, BLANK
@@ -114,36 +115,39 @@ def setup(action, old_page=None):
             # project configuration file or deleted some project files.
 
             # Checks for legacy layouts (using ubiquity).
-            is_success_analyze_1 = bool(                    \
-                model.status.is_success_analyze and         \
-                model.layout.casper_directory and           \
-                model.layout.squashfs_directory and         \
+            is_success_analyze_1 = bool(                     \
+                model.status.is_success_analyze and          \
+                model.layout.casper_directory and            \
+                model.layout.squashfs_directory and          \
                 model.layout.squashfs_file_name)
-            is_success_copy_1 = bool(                       \
-                model.status.is_success_copy and            \
-                model.layout.casper_directory and           \
+            is_success_copy_1 = bool(                        \
+                model.status.is_success_copy and             \
+                model.layout.casper_directory and            \
                 model.layout.squashfs_directory)
-            is_success_extract_1 = bool(                    \
-                model.status.is_success_extract and         \
-                model.layout.squashfs_directory and         \
+            is_success_extract_1 = bool(                     \
+                model.status.is_success_extract and          \
+                model.layout.squashfs_directory and          \
                 model.layout.squashfs_file_name)
 
             # Checks for newer layouts (using subiquity).
-            is_success_analyze_2 = bool(                    \
-                model.status.is_success_analyze and         \
-                model.layout.casper_directory and           \
-                model.layout.squashfs_directory and         \
-                model.layout.minimal_squashfs_file_name and \
-                model.layout.standard_squashfs_file_name)
-            is_success_copy_2 = bool(                       \
-                model.status.is_success_copy and            \
-                model.layout.casper_directory and           \
+            is_success_analyze_2 = bool(                     \
+                model.status.is_success_analyze and          \
+                model.layout.casper_directory and            \
+                model.layout.squashfs_directory and          \
+                model.layout.minimal_squashfs_file_name and  \
+                model.layout.standard_squashfs_file_name and \
+                model.layout.installer_squashfs_file_name)
+
+            is_success_copy_2 = bool(                        \
+                model.status.is_success_copy and             \
+                model.layout.casper_directory and            \
                 model.layout.squashfs_directory)
-            is_success_extract_2 = bool(                    \
-                model.status.is_success_extract and         \
-                model.layout.squashfs_directory and         \
-                model.layout.minimal_squashfs_file_name and \
-                model.layout.standard_squashfs_file_name)
+            is_success_extract_2 = bool(                     \
+                model.status.is_success_extract and          \
+                model.layout.squashfs_directory and          \
+                model.layout.minimal_squashfs_file_name and  \
+                model.layout.standard_squashfs_file_name and \
+                model.layout.installer_squashfs_file_name)
 
             model.status.is_success_analyze = is_success_analyze_1 or is_success_analyze_2
             model.status.is_success_copy = is_success_copy_1 or is_success_copy_2
@@ -179,14 +183,23 @@ def setup(action, old_page=None):
         # displayer.update_progress_bar_text('extract_page__unsquashfs_progress_bar', None)
         displayer.update_label('extract_page__unsquashfs_message', '', False)
 
+        # --------------------------------------------------------------
+        # Setup the next button.
+        # --------------------------------------------------------------
+
+        # The next action is automatic. The value of the next action is
+        # returned by the enter() function, so there is no need to set it
+        # here. The enter function can return:
+        # • 'next' - to go to the Snaps page
+        # • 'next-terminal' - to go to the Terminal page
         displayer.reset_buttons(
             back_button_label='❬Back',
             back_action='back',
             back_button_style=None,
             is_back_sensitive=True,
             is_back_visible=True,
-            next_button_label='Customize❭',
-            next_action='next',
+            next_button_label='Next❭',
+            next_action=None,
             next_button_style='suggested-action',
             is_next_sensitive=False,
             is_next_visible=True)
@@ -315,66 +328,133 @@ def enter(action, old_page=None):
             # Delete the custom root directory if it exists.
             file_utilities.delete_path_as_root(model.project.custom_root_directory)
 
-            # Identify squashfs files to extract.
-            directory_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory)
-            if model.layout.squashfs_file_name:
-                file_names = [model.layout.squashfs_file_name]
-            else:
-                '''
-                file_names = [model.layout.minimal_squashfs_file_name,         \
-                              model.layout.standard_squashfs_file_name,        \
-                              model.layout.installer_squashfs_file_name,       \
-                              model.layout.installer_generic_squashfs_file_name]
-                '''
-                '''
-                file_names = [model.layout.minimal_squashfs_file_name,         \
-                              model.layout.standard_squashfs_file_name,        \
-                              model.layout.installer_squashfs_file_name,       ]
-                '''
-                file_names = [model.layout.minimal_squashfs_file_name, \
-                              model.layout.standard_squashfs_file_name]
-
+            # TODO:
             # Exclude empty file names and links.
-            file_names = [file_name for file_name in file_names \
-                          if file_name and not os.path.islink(os.path.join(directory_path, file_name))]
+            # Identify squashfs files to extract.
+            # directory_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory)
 
-            # Extract and merge each squashfs file in sequence.
-            # • Set model.status.is_success_extract
-            #
-            # The first file is extracted. Subsequent files must be
-            # extracted and merged with the first. The following table
-            # shows the sequence events for five files, where
-            # E = extract and M = Merge.
-            #
-            # File Number : 0 1   2   3   4
-            #       Steps : - - - - - - - - -
-            #     Extract : E E . E . E . E .
-            #     Merge :     M   M   M   M
+            if model.layout.squashfs_file_name:
 
-            total_files = len(file_names)
-            for file_number, file_name in enumerate(file_names):
-                if file_number == 0:
-                    # Case for first file (or single file).
-                    # Extract
-                    source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
-                    target_file_path = model.project.custom_root_directory
-                    is_error = extract_linux_file_system(source_file_path, target_file_path, file_number, total_files)
-                    if is_error: return  # Stay on this page.
-                    logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
-                else:
-                    # Case for subsequent files.
-                    # Extract
-                    source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
-                    target_file_path = model.project.custom_temp_directory
-                    is_error = extract_linux_file_system(source_file_path, target_file_path, file_number, total_files)
-                    if is_error: return  # Stay on this page.
-                    logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
-                    # Merge
-                    source_file_path = model.project.custom_temp_directory
-                    target_file_path = model.project.custom_root_directory
-                    is_error = merge_linux_file_system(source_file_path, target_file_path, file_number, total_files)
-                    if is_error: return  # Stay on this page.
-                    logger.log_value('Done Merging', f'{file_number + 1} of {total_files}: {file_name}')
+                # There is only one squashfs file.
+
+                # Extract and merge each squashfs file in sequence.
+                # • Set model.status.is_success_extract
+
+                total_files = 1
+
+                # ------------------------------------------------------
+                # 2. General Section
+                # ------------------------------------------------------
+
+                file_number = 0  # 1
+                file_name = model.layout.squashfs_file_name
+
+                # Extract to custom root directory.
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_root_directory
+
+                message = 'Extracting the Linux file system.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, file_number, total_files)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+            else:
+
+                # There are multiple squashfs files.
+
+                # Extract and merge each squashfs file in sequence.
+                # • Set model.status.is_success_extract
+
+                total_files = 3
+                total_steps = 4
+
+                # ------------------------------------------------------
+                # 3. Minimal Section
+                # ------------------------------------------------------
+
+                file_number = 0  # 1
+                file_name = model.layout.minimal_squashfs_file_name
+
+                # 3 Extract to custom root directory.
+                step_number = 0
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_root_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+                # ------------------------------------------------------
+                # 4. Standard Section
+                # ------------------------------------------------------
+
+                file_number = 1  # 2
+                file_name = model.layout.standard_squashfs_file_name
+
+                # Extract to custom temp directory.
+                step_number = 1
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_temp_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+                # Merge
+                step_number = 2
+                source_file_path = model.project.custom_temp_directory
+                target_file_path = model.project.custom_root_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                # message = f'Merging Linux file system {file_number_text} of {total_files_text}.'
+                # message = f'Merging Linux file system one and {file_number_text}.'
+                message = 'Merging Linux file systems.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = merge_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                # logger.log_value('Done Merging', f'{file_number + 1} of {total_files}: {file_name}')
+                logger.log_value('Done Merging', f'{file_number + 1}: {file_name}')
+
+                # ------------------------------------------------------
+                # 5. Installer / Live Section
+                # ------------------------------------------------------
+
+                file_number = 2  # 3
+                file_name = model.layout.installer_squashfs_file_name
+                # file_name = model.layout.installer_generic_squashfs_file_name
+
+                # Extract to custom live directory.
+                step_number = 3
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_live_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
 
             # Pause to allow the user to see the result.
             message = 'Success.'
@@ -382,7 +462,256 @@ def enter(action, old_page=None):
             displayer.update_status('extract_page__unsquashfs', OK)
             time.sleep(SLEEP_1000_MS)
 
-        return 'next'
+        # Determine of the Snaps page or the Terminal page should be
+        # shown.
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+        if os.path.isfile(file_path):
+            # Automatically transition to the Snaps page.
+            return 'next'
+        else:
+            # Automatically transition to the Terminal page.
+            return 'next-terminal'
+
+    else:
+
+        logger.log_value('Error', f'{BOLD_RED}Unknown action for enter{NORMAL}')
+
+        return 'unknown'
+
+    if action == 'next-terminal':
+
+        # --------------------------------------------------------------
+        # Analyze
+        # --------------------------------------------------------------
+
+        if not (model.status.iso_template and model.status.is_success_analyze):
+
+            displayer.update_status('extract_page__analyze_original_iso', PROCESSING)
+
+            time.sleep(SLEEP_1000_MS)
+
+            if not model.status.iso_template:
+
+                # Delete the old image files. Ignore errors.
+                file_path_pattern = os.path.join(model.project.directory, IMAGE_FILE_NAME % '[1-9]')
+                file_utilities.delete_files_with_pattern(file_path_pattern)
+
+                # Identify the template for the original disk image.
+                # • Set model.status.iso_template
+                is_error = analyze_iso_template()
+
+                if is_error: return  # Stay on this page.
+
+            if not model.status.is_success_analyze:
+
+                source_directory_path = model.project.iso_mount_point
+
+                # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+                # TODO: Remove this section in the future. [2024-08-10]
+                # Migrate a project created using Cubic version
+                # 2024.02.86 to a newer version.
+                # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+                if not iso_utilities.is_mounted(model.project.iso_mount_point):
+                    source_directory_path = model.project.custom_disk_directory
+
+                # Analyze the ISO layout.
+                # • Set model.status.is_success_analyze
+                # • Set model.layout.squashfs_directory
+                # • Set model.layout.standard_squashfs_file_name
+                # • Set model.layout.casper_directory
+                # • Set model.layout.*
+                # • Set model.status.has_minimal_install
+
+                is_error = analyze_iso_layout(source_directory_path)
+
+                if is_error: return  # Stay on this page.
+
+            # Pause to allow the user to see the result.
+            message = 'Success.'
+            displayer.update_label('extract_page__analyze_original_iso_message', message, False)
+            displayer.update_status('extract_page__analyze_original_iso', OK)
+            time.sleep(SLEEP_1000_MS)
+
+        # --------------------------------------------------------------
+        # Copy
+        # --------------------------------------------------------------
+
+        if not model.status.is_success_copy:
+
+            displayer.update_status('extract_page__copy_original_iso_files', PROCESSING)
+
+            # Copy important files from the original disk image.
+            # Set the following:
+            # • Set model.status.is_success_copy
+            is_error = copy_original_iso_files()
+
+            if is_error: return  # Stay on this page.
+
+            # Pause to allow the user to see the result.
+            message = 'Success.'
+            displayer.update_label('extract_page__copy_original_iso_files_message', message, False)
+            displayer.update_status('extract_page__copy_original_iso_files', OK)
+            time.sleep(SLEEP_1000_MS)
+
+        # --------------------------------------------------------------
+        # Extract & Merge
+        # --------------------------------------------------------------
+
+        if not model.status.is_success_extract:
+
+            displayer.update_status('extract_page__unsquashfs', PROCESSING)
+
+            # Clear the terminal because the history will no longer be
+            # valid when the new squashfs files are extracted.
+            terminal = model.builder.get_object('terminal_page__terminal')
+            terminal.reset(True, True)
+
+            # Delete the custom root directory if it exists.
+            file_utilities.delete_path_as_root(model.project.custom_root_directory)
+
+            # TODO:
+            # Exclude empty file names and links.
+            # Identify squashfs files to extract.
+            # directory_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory)
+
+            if model.layout.squashfs_file_name:
+
+                # There is only one squashfs file.
+
+                # Extract and merge each squashfs file in sequence.
+                # • Set model.status.is_success_extract
+
+                total_files = 1
+
+                # ------------------------------------------------------
+                # 2. General Section
+                # ------------------------------------------------------
+
+                file_number = 0  # 1
+                file_name = model.layout.squashfs_file_name
+
+                # Extract to custom root directory.
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_root_directory
+
+                message = 'Extracting the Linux file system.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, file_number, total_files)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+            else:
+
+                # There are multiple squashfs files.
+
+                # Extract and merge each squashfs file in sequence.
+                # • Set model.status.is_success_extract
+
+                total_files = 3
+                total_steps = 4
+
+                # ------------------------------------------------------
+                # 3. Minimal Section
+                # ------------------------------------------------------
+
+                file_number = 0  # 1
+                file_name = model.layout.minimal_squashfs_file_name
+
+                # 3 Extract to custom root directory.
+                step_number = 0
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_root_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+                # ------------------------------------------------------
+                # 4. Standard Section
+                # ------------------------------------------------------
+
+                file_number = 1  # 2
+                file_name = model.layout.standard_squashfs_file_name
+
+                # Extract to custom temp directory.
+                step_number = 1
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_temp_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+                # Merge
+                step_number = 2
+                source_file_path = model.project.custom_temp_directory
+                target_file_path = model.project.custom_root_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                # message = f'Merging Linux file system {file_number_text} of {total_files_text}.'
+                # message = f'Merging Linux file system one and {file_number_text}.'
+                message = 'Merging Linux file system.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = merge_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                # logger.log_value('Done Merging', f'{file_number + 1} of {total_files}: {file_name}')
+                logger.log_value('Done Merging', f'{file_number + 1}: {file_name}')
+
+                # ------------------------------------------------------
+                # 5. Installer / Live Section
+                # ------------------------------------------------------
+
+                file_number = 2  # 3
+                file_name = model.layout.installer_squashfs_file_name
+                # file_name = model.layout.installer_generic_squashfs_file_name
+
+                # Extract to custom live directory.
+                step_number = 3
+                source_file_path = os.path.join(model.project.iso_mount_point, model.layout.squashfs_directory, file_name)
+                target_file_path = model.project.custom_live_directory
+
+                file_number_text = constructor.number_as_text(file_number + 1)
+                total_files_text = constructor.number_as_text(total_files)
+                message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
+                displayer.update_label('extract_page__unsquashfs_message', message, False)
+
+                is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
+
+                if is_error: return  # Stay on this page.
+                logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+            # Pause to allow the user to see the result.
+            message = 'Success.'
+            displayer.update_label('extract_page__unsquashfs_message', message, False)
+            displayer.update_status('extract_page__unsquashfs', OK)
+            time.sleep(SLEEP_1000_MS)
+
+        # Determine of the Snaps page or the Terminal page should be
+        # shown.
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+        if os.path.isfile(file_path):
+            # Automatically transition to the Snaps page.
+            return 'next'
+        else:
+            # Automatically transition to the Terminal page.
+            return 'next-terminal'
 
     else:
 
@@ -419,6 +748,15 @@ def leave(action, new_page=None):
         return
 
     elif action == 'next':
+
+        displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
+
+        # Save the model values.
+        model.project.configuration.save()
+
+        return
+
+    if action == 'next-terminal':
 
         displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
 
@@ -1093,47 +1431,13 @@ def extract_linux_file_system(source_file_path, target_file_path, file_number, t
     logger.log_value('The source file path is', source_file_path)
     logger.log_value('The target file path is', target_file_path)
 
-    if total_files > 1:
-        file_number_text = constructor.number_as_text(file_number + 1)
-        total_files_text = constructor.number_as_text(total_files)
-        message = f'Extracting Linux file system {file_number_text} of {total_files_text}.'
-    else:
-        message = 'Extracting the Linux file system.'
-    displayer.update_label('extract_page__unsquashfs_message', message, False)
-
     program = os.path.join(model.application.directory, 'commands', 'extract-root')
     command = ['pkexec', program, source_file_path, target_file_path]
-
-    # The total number of remaining extract steps, excluding the first
-    # extract step. This value is only used when there is more than one
-    # file to extract.
-    total_remaining_steps = (total_files - 1) * 2
-
-    # The number of the current extract step, excluding the first
-    # extract step. This value is only used when there is more than one
-    # file to extract.
-    remaining_step_number = (file_number * 2) - 2
 
     # The progress callback function.
     def progress_callback(percent):
         # total_percent = Start % + Δ %
-        if total_files == 1:
-            # Case for a single file: Use the entire progress bar.
-            total_percent = percent
-        elif file_number == 0:
-            # Case for the first file: Use the first half of the
-            # progress bar when there is more than one file to extract.
-            # Allocate a significant portion of the progress bar to the
-            # first file because it is usually the largest and takes
-            # the longest to extract.
-            total_percent = percent / 2
-        else:
-            # Case for subsequent files: use the second half of the
-            # progress bar, and split it equally between all remaining
-            # extract steps.
-            total_percent = (FIFTY_PERCENT) +                                                 \
-                            (FIFTY_PERCENT * remaining_step_number / total_remaining_steps) + \
-                            (percent / 2 / total_remaining_steps)
+        total_percent = (FINAL_PERCENT * file_number + percent) / total_files
         # displayer.update_progress_bar_percent('extract_page__unsquashfs_progress_bar', total_percent)
         displayer.update_progress_bar_text('extract_page__unsquashfs_progress_bar', f'{locale.format_string("%.1f", total_percent, True)}{GAP}%')
         displayer.update_progress_bar_percent('extract_page__unsquashfs_progress_bar', total_percent)
@@ -1177,32 +1481,13 @@ def merge_linux_file_system(source_file_path, target_file_path, file_number, tot
     logger.log_value('The source file path is', source_file_path)
     logger.log_value('The target file path is', target_file_path)
 
-    file_number_text = constructor.number_as_text(file_number + 1)
-    total_files_text = constructor.number_as_text(total_files)
-    message = f'Merging Linux file system {file_number_text} of {total_files_text}.'
-
-    displayer.update_label('extract_page__unsquashfs_message', message, False)
-
     program = os.path.join(model.application.directory, 'commands', 'merge-directory')
     command = ['pkexec', program, source_file_path, target_file_path]
-
-    # The total number of merge steps. This value is only used when
-    # there is more than one file to extract.
-    total_remaining_steps = (total_files - 1) * 2
-
-    # The number of the current merge step. This value is only used
-    # when there is more than one file to extract.
-    remaining_step_number = (file_number * 2) - 1
 
     # The progress callback function.
     def progress_callback(percent):
         # total_percent = Start % + Δ %
-        # Case for subsequent files: Use the second half of the
-        # progress bar, and split it equally between all remaining
-        # extract steps.
-        total_percent = (FIFTY_PERCENT) +                                                 \
-                        (FIFTY_PERCENT * remaining_step_number / total_remaining_steps) + \
-                        (percent / 2 / total_remaining_steps)
+        total_percent = (FINAL_PERCENT * file_number + percent) / total_files
         # displayer.update_progress_bar_percent('extract_page__unsquashfs_progress_bar', total_percent)
         displayer.update_progress_bar_text('extract_page__unsquashfs_progress_bar', f'{locale.format_string("%.1f", total_percent, True)}{GAP}%')
         displayer.update_progress_bar_percent('extract_page__unsquashfs_progress_bar', total_percent)

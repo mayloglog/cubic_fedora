@@ -258,9 +258,11 @@ def leave(action, new_page=None):
         #    - Set in the initialize_model() function
         # 6. model.project.custom_root_directory
         #    - Set in the initialize_model() function
-        # 7. model.project.custom_temp_directory
+        # 7. model.project.custom_live_directory
         #    - Set in the initialize_model() function
-        # 8. model.project.custom_disk_directory
+        # 8. model.project.custom_temp_directory
+        #    - Set in the initialize_model() function
+        # 9. model.project.custom_disk_directory
         #    - Set in the initialize_model() function
 
         # Prepend the selected project directory to the list of previous
@@ -289,9 +291,11 @@ def leave(action, new_page=None):
         #    - Set in the initialize_model() function
         # 6. model.project.custom_root_directory
         #    - Set in the initialize_model() function
-        # 7. model.project.custom_temp_directory
+        # 7. mo8del.project.custom_live_directory
         #    - Set in the initialize_model() function
-        # 8. model.project.custom_disk_directory
+        # 8. model.project.custom_temp_directory
+        #    - Set in the initialize_model() function
+        # 9. model.project.custom_disk_directory
         #    - Set in the initialize_model() function
 
         # Prepend the selected project directory to the list of previous
@@ -517,9 +521,11 @@ def validate_page():
     #    - Set in the validate_page() function
     # 7. model.project.custom_root_directory
     #    - Set in the validate_page() function
-    # 8. model.project.custom_temp_directory
+    # 8. model.project.custom_live_directory
+    #    - Set in the initialize_model() function
+    # 9. model.project.custom_temp_directory
     #    - Set in the validate_page() function
-    # 9. model.project.custom_disk_directory
+    # 10. model.project.custom_disk_directory
     #    - Set in the validate_page() function
     #
     # logger.log_value('The project cubic version is', model.project.cubic_version)
@@ -529,6 +535,7 @@ def validate_page():
     # logger.log_value('The project configuration is', model.project.configuration)
     # logger.log_value('The project iso mount point is', model.project.iso_mount_point)
     # logger.log_value('The project custom root directory is', model.project.custom_root_directory)
+    # logger.log_value('The project custom live directory is', model.project.custom_live_directory)
     # logger.log_value('The project custom temp directory is', model.project.custom_temp_directory)
     # logger.log_value('The project custom disk directory is', model.project.custom_disk_directory)
 
@@ -650,7 +657,10 @@ def initialize_model():
     # model.project.configuration = None
     model.project.iso_mount_point = constructor.construct_original_iso_mount_point(model.project.directory)
     model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+    model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
     model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
+    model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+    model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
     model.project.custom_disk_directory = constructor.construct_custom_disk_directory(model.project.directory)
 
     model.original.iso_file_name = None

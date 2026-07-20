@@ -354,7 +354,7 @@ def copy_file(file_path, file_number, directory, total_files):
         global file_number
         total_percent = (FINAL_PERCENT * file_number + percent) / total_files
         displayer.update_progress_bar_percent('terminal_copy_page__copy_files_progress_bar', total_percent)
-        displayer.update_list_store_progress_bar_percent('terminal_copy_page__file_details__list_store', file_number, percent)
+        displayer.update_list_store_progress_bar_percent('terminal_copy_page__file_details__list_store', file_number, 0, percent)
         if total_percent % 10 == 0:
             logger.log_value('Completed', f'{total_percent:n}%')
 

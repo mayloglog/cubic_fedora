@@ -271,17 +271,37 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style=None,
-            is_next_sensitive=False,
-            is_next_visible=True)
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+
+        if os.path.isfile(file_path):
+            # Show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'Yes')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
+
+        else:
+            # Do not show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'No')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back-project',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
 
         displayer.set_visible('terminal_page__copy_header_bar_button', True)
         displayer.set_sensitive('terminal_page__copy_header_bar_button', False)
@@ -292,17 +312,37 @@ def setup(action, old_page=None):
 
         # Do not assume the virtual environment is running.
 
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style=None,
-            is_next_sensitive=is_running,
-            is_next_visible=True)
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+
+        if os.path.isfile(file_path):
+            # Show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'Yes')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=is_running,
+                is_next_visible=True)
+
+        else:
+            # Do not show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'No')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back-project',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=is_running,
+                is_next_visible=True)
 
         displayer.set_visible('terminal_page__copy_header_bar_button', True)
         displayer.set_sensitive('terminal_page__copy_header_bar_button', is_running)
@@ -313,17 +353,37 @@ def setup(action, old_page=None):
 
         # Do not assume the virtual environment is running.
 
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style=None,
-            is_next_sensitive=is_running,
-            is_next_visible=True)
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+
+        if os.path.isfile(file_path):
+            # Show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'Yes')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=is_running,
+                is_next_visible=True)
+
+        else:
+            # Do not show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'No')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back-project',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=is_running,
+                is_next_visible=True)
 
         displayer.set_visible('terminal_page__copy_header_bar_button', True)
         displayer.set_sensitive('terminal_page__copy_header_bar_button', is_running)
@@ -334,17 +394,37 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style=None,
-            is_next_sensitive=False,
-            is_next_visible=True)
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+
+        if os.path.isfile(file_path):
+            # Show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'Yes')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
+
+        else:
+            # Do not show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'No')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back-project',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
 
         displayer.set_visible('terminal_page__copy_header_bar_button', True)
         displayer.set_sensitive('terminal_page__copy_header_bar_button', False)
@@ -355,17 +435,37 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style=None,
-            is_next_sensitive=False,
-            is_next_visible=True)
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+
+        if os.path.isfile(file_path):
+            # Show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'Yes')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
+
+        else:
+            # Do not show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'No')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back-project',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
 
         displayer.set_visible('terminal_page__copy_header_bar_button', True)
         displayer.set_sensitive('terminal_page__copy_header_bar_button', False)
@@ -376,17 +476,37 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style=None,
-            is_next_sensitive=False,
-            is_next_visible=True)
+        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+
+        if os.path.isfile(file_path):
+            # Show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'Yes')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
+
+        else:
+            # Do not show the Snaps page.
+            # logger.log_value('Show the Snaps page?', 'No')
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back-project',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next',
+                next_button_style=None,
+                is_next_sensitive=False,
+                is_next_visible=True)
 
         displayer.set_visible('terminal_page__copy_header_bar_button', True)
         displayer.set_sensitive('terminal_page__copy_header_bar_button', False)
@@ -490,6 +610,27 @@ def leave(action, new_page=None):
     """
 
     if action == 'back':
+
+        displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
+
+        displayer.set_visible('terminal_page__copy_header_bar_button', False)
+
+        # The terminal continues running whenever the application
+        # navigates away from the Terminal page, so the pseudo terminal
+        # process must be explicitly killed.
+        console.exit_virtual_environment()
+
+        # Delete the virtual environment lock file.
+        lock_file_path = os.path.join(model.project.directory, LOCK_FILE_NAME)
+        result, exit_status, signal_status = file_utilities.delete_path_as_root(lock_file_path)
+
+        time.sleep(SLEEP_0250_MS)
+
+        return
+
+    if action == 'back-project':
+
+        # Do not show the Snaps page.
 
         displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
 

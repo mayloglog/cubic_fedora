@@ -1,4 +1,37 @@
-cubic (2026.06) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+cubic (2026.07) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+
+  * Issues fixed in version 2026.07.106:
+
+  - Implemented Enhancement GH#482, Add a Remove Snaps Feature.
+  - Implemented Enhancement GH#461, Optionally extract the live installer
+    overlay file system.
+  - Fixed Bug Gh#429, The generated iso file is not bootable. Add the correct
+    architecture (such as amd64) to the README.diskdefines file, which is
+    required for VirtualBox to boot the ISO.
+  - Added a new Snaps page to remove selected snap packages.
+  - Updated Cubic page navigation to incorporate the new Snaps functionality.
+  - Added custom-live, backup-root, and backup-custom directories to the Cubic
+    project structure to support the new Snaps functionality.
+  - Updated the Extract page to extract the live squashfs file system for the
+    new Snaps functionality.
+  - Updated the Generate page to incorporate the custom live squashfs file
+    system for the new Snaps functionality.
+  - Update the Delete and Finish pages to handle the custom-live, backup-root,
+    and backup-custom directories.
+  - Added a new help page for the new Snaps functionality.
+  - Updated the copy-path command to limit the paths that it may be executed on
+    and to return the exit code.
+  - Updated the delete-path command to limit the paths that it may be executed
+    on.
+  - Updated the move-path command to use rsync, limit the paths that it may be
+    executed on, and to return the exit code.
+  - Added the ability to parse JSON files.
+  - When searching for files using a regular expression name pattern, handle
+    file names that include hex codes (to facilitate searching for snap
+    package files).
+  - Updated displayer.update_list_store_progress_bar_percent() to specify which
+    column represents the progress percentage. Added function,
+    displayer._update_list_store_progress_bar_text().
 
   * Issues fixed in version 2026.06.105:
 
@@ -703,4 +736,4 @@ cubic (2026.06) stonking resolute questing plucky oracular noble mantic lunar ki
     customized OS.
   - Merged from Experimental branch, revision 19
 
- -- PJ Singh <psingh.cubic@gmail.com>  Sat, 13 Jun 2026 16:35:20 -0400
+ -- PJ Singh <psingh.cubic@gmail.com>  Mon, 20 Jul 2026 13:36:16 -0400
