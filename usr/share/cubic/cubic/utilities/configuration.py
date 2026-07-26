@@ -48,23 +48,29 @@ Cubic versions:
 
 "Release" 2022 Version:
   From: Release 2022.11-73 on 11/19/2022
-  Thru: Release 2023.03-75 on 03/02/2023
+  Thru: Release 2023.05-82 on 05/14/2023
   • Refactored this module
   • Added the abstract Configuration class
   • Added the derived Application class for ~/.config/cubic/cubic.conf
   • Added the derived Project class for <project directory>/cubic.conf
 
 "Release" 2023 Version:
-  From: Release 2023.03-76 on 03/11/2023
+  From: Release 2023.05-83 on 05/22/2023
   Thru: Release 2024.02-86 on 02/20/2024
   • Continue to use 2022 version for Application configuration 
   • Added the "has_minimal_install" option to the Project configuration
 
 "Release" 2024 Version:
   From: Release 2024.09-87  on 09/01/2024
-  Thru: Release 2026.__.___ on __/__/20__
+  Thru: Release 2026.07.106 on 07/20/2026
   • Added the Layout section to the the Project configuration
   • Removed the "Installer" section from the Project configuration
+
+"Release" 2024 Version:
+  From: Release 2026.07.107 on 07/26/2026
+  Thru: Release 20__.__.___ on __/__/20__
+  • Renamed installer_sources_file_name to install_sources_file_name
+  • Renamed installer_..._file_name to live_..._file_name
 """
 
 ########################################################################
@@ -84,7 +90,7 @@ import os
 from abc import ABC, abstractmethod
 from packaging import version
 
-from cubic.constants import CONFIG_VERSION_2024
+from cubic.constants import CONFIG_VERSION_2026
 from cubic.utilities import constructor
 from cubic.utilities import file_utilities
 from cubic.utilities import logger
@@ -460,7 +466,19 @@ class Application(Configuration):
             self._load_model_YYYY_layout()
         '''
 
+        # Load the model
         self._load_model_2024_layout()
+
+        # Reset visited sites.
+        # Read the previous version from the configuration file (since
+        # it is skipped during the load function).
+        # previous_version = self.get_value('Application', 'cubic_version')
+        # previous_version = constructor.get_display_version(previous_version)
+        # previous_version = version.parse(previous_version)
+        # print(f'previous_version = {previous_version}')
+        # If the previous version is older than 2026.07.107.
+        # if previous_version < version.parse('2026.07.106'):
+        #     model.application.visited_sites = []
 
     def _load_model_2024_layout(self):
         """
@@ -480,7 +498,8 @@ class Application(Configuration):
         self.config_parser.read(self.file_path)
 
         # Cubic version
-        # The Cubic version should be set to the running version.
+        # The Cubic application version is set to the running version in
+        # cubic_wizard.py.
         # model.application.cubic_version = self.get_value('Application', 'cubic_version')
 
         # Visited sites
@@ -604,103 +623,10 @@ class Project(Configuration):
 
         # Load the model using the correct configuration file layout.
         previous_version = version.parse(previous_version)
-        if previous_version < version.parse(CONFIG_VERSION_2024):
-            self._load_model_2023_layout()
-        else:
+        if previous_version < version.parse(CONFIG_VERSION_2026):
             self._load_model_2024_layout()
-
-    def _load_model_2023_layout(self):
-        """
-        Load the project model from the 2023 configuration file layout.
-
-        This method should only be called by the _load_model() method.
-
-        Arguments:
-        self : Configuration
-            A derived class of Configuration.
-        """
-
-        logger.log_value('Load project configuration', f'2023 layout from {self.file_path}')
-
-        # The following fields must be set prior to invoking this method:
-        # 1. model.project.directory
-
-        # Project
-        model.project.cubic_version = self.get_value('Project', 'cubic_version')
-        model.project.first_version = self.get_value('Project', 'first_version', default=model.project.cubic_version)
-        model.project.create_date = self.get_value('Project', 'create_date')
-        model.project.modify_date = self.get_value('Project', 'modify_date')
-        # model.project.directory = self.get_value('Project', 'directory')
-        # model.project.configuration = self
-
-        # Original
-        model.original.iso_file_name = self.get_value('Original', 'iso_file_name')
-        model.original.iso_directory = self.get_value('Original', 'iso_directory')
-        model.original.iso_volume_id = self.get_value('Original', 'iso_volume_id')[:32]
-        model.original.iso_release_name = self.get_value('Original', 'iso_release_name')
-        model.original.iso_disk_name = self.get_value('Original', 'iso_disk_name')
-
-        # Custom
-        model.custom.iso_version_number = self.get_value('Custom', 'iso_version_number')
-        model.custom.iso_file_name = self.get_value('Custom', 'iso_file_name')
-        model.custom.iso_directory = self.get_value('Custom', 'iso_directory')
-        model.custom.iso_volume_id = self.get_value('Custom', 'iso_volume_id')[:32]
-        model.custom.iso_release_name = self.get_value('Custom', 'iso_release_name')
-        model.custom.iso_disk_name = self.get_value('Custom', 'iso_disk_name')
-
-        # Layout
-
-        # A new layout will be created on the Start page.
-        '''
-        # Casper Section
-        model.layout.set_attribute_values('casper_directory', self.get_list('Layout', 'casper_directory', default=[]))
-        # Initrd file name is not saved in the configuration.
-        # model.layout.set_attribute_values('initrd_file_name', self.get_list('Layout', 'initrd_file_name', default=[]))
-        # Vmlinuz file name is not saved in the configuration.
-        # model.layout.set_attribute_values('vmlinuz_file_name', self.get_list('Layout', 'vmlinuz_file_name', default=[]))
-        # Squashfs Section
-        model.layout.set_attribute_values('squashfs_directory', self.get_list('Layout', 'squashfs_directory', default=[]))
-        model.layout.set_attribute_values('squashfs_file_name', self.get_list('Layout', 'squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('manifest_file_name', self.get_list('Layout', 'manifest_file_name', default=[]))
-        model.layout.set_attribute_values('minimal_remove_file_name', self.get_list('Layout', 'minimal_remove_file_name', default=[]))
-        model.layout.set_attribute_values('standard_remove_file_name', self.get_list('Layout', 'standard_remove_file_name', default=[]))
-        model.layout.set_attribute_values('size_file_name', self.get_list('Layout', 'size_file_name', default=[]))
-        # Minimal Section
-        model.layout.set_attribute_values('minimal_squashfs_file_name', self.get_list('Layout', 'minimal_squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('minimal_manifest_file_name', self.get_list('Layout', 'minimal_manifest_file_name', default=[]))
-        model.layout.set_attribute_values('minimal_size_file_name', self.get_list('Layout', 'minimal_size_file_name', default=[]))
-        # Standard Section
-        model.layout.set_attribute_values('standard_squashfs_file_name', self.get_list('Layout', 'standard_squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('standard_manifest_file_name', self.get_list('Layout', 'standard_manifest_file_name', default=[]))
-        model.layout.set_attribute_values('standard_size_file_name', self.get_list('Layout', 'standard_size_file_name', default=[]))
-        # Installer / Live Section
-        model.layout.set_attribute_values('installer_sources_file_name', self.get_list('Layout', 'installer_sources_file_name', default=[]))
-        model.layout.set_attribute_values('installer_squashfs_file_name', self.get_list('Layout', 'installer_squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('installer_manifest_file_name', self.get_list('Layout', 'installer_manifest_file_name', default=[]))
-        model.layout.set_attribute_values('installer_size_file_name', self.get_list('Layout', 'installer_size_file_name', default=[]))
-        model.layout.set_attribute_values('installer_generic_squashfs_file_name', self.get_list('Layout', 'installer_generic_squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('installer_generic_manifest_file_name', self.get_list('Layout', 'installer_generic_manifest_file_name', default=[]))
-        model.layout.set_attribute_values('installer_generic_size_file_name', self.get_list('Layout', 'installer_generic_size_file_name', default=[]))
-        '''
-
-        # Status
-        model.status.is_success_analyze = self.get_boolean('Status', 'is_success_analyze', default=False)
-        model.status.is_success_copy = self.get_boolean('Status', 'is_success_copy', default=False)
-        model.status.is_success_extract = self.get_boolean('Status', 'is_success_extract', default=False)
-        model.status.iso_template = self.get_value('Status', 'iso_template', default=None)
-        # The following have been move to the layout section.
-        # model.status.squashfs_directory = self.get_value('Status', 'squashfs_directory', default=None)
-        # model.status.squashfs_file_name = self.get_value('Status', 'squashfs_file_name', default=None)
-        # model.status.casper_directory = self.get_value('Status', 'casper_directory', default=None)
-        model.status.iso_checksum = self.get_value('Status', 'iso_checksum', default=None)
-        model.status.iso_checksum_file_name = self.get_value('Status', 'iso_checksum_file_name', default=None)
-
-        # Options
-        model.options.update_os_release = self.get_boolean('Options', 'update_os_release', default=True)
-        # From the Installer section of the 2023 configuration.
-        model.options.has_minimal_install = self.get_boolean('Installer', 'has_minimal_install', default=False)
-        model.options.boot_configurations = self.get_list('Options', 'boot_configurations', default=None)
-        model.options.compression = self.get_value('Options', 'compression', default=None)
+        else:
+            self._load_model_2026_layout()
 
     def _load_model_2024_layout(self):
         """
@@ -764,14 +690,99 @@ class Project(Configuration):
         model.layout.set_attribute_values('standard_squashfs_file_name', self.get_list('Layout', 'standard_squashfs_file_name', default=[]))
         model.layout.set_attribute_values('standard_manifest_file_name', self.get_list('Layout', 'standard_manifest_file_name', default=[]))
         model.layout.set_attribute_values('standard_size_file_name', self.get_list('Layout', 'standard_size_file_name', default=[]))
-        # Installer / Live Section
-        model.layout.set_attribute_values('installer_sources_file_name', self.get_list('Layout', 'installer_sources_file_name', default=[]))
-        model.layout.set_attribute_values('installer_squashfs_file_name', self.get_list('Layout', 'installer_squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('installer_manifest_file_name', self.get_list('Layout', 'installer_manifest_file_name', default=[]))
-        model.layout.set_attribute_values('installer_size_file_name', self.get_list('Layout', 'installer_size_file_name', default=[]))
-        model.layout.set_attribute_values('installer_generic_squashfs_file_name', self.get_list('Layout', 'installer_generic_squashfs_file_name', default=[]))
-        model.layout.set_attribute_values('installer_generic_manifest_file_name', self.get_list('Layout', 'installer_generic_manifest_file_name', default=[]))
-        model.layout.set_attribute_values('installer_generic_size_file_name', self.get_list('Layout', 'installer_generic_size_file_name', default=[]))
+        # Live / Installer Section
+        model.layout.set_attribute_values('install_sources_file_name', self.get_list('Layout', 'installer_sources_file_name', default=[]))
+        model.layout.set_attribute_values('live_squashfs_file_name', self.get_list('Layout', 'installer_squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('live_manifest_file_name', self.get_list('Layout', 'installer_manifest_file_name', default=[]))
+        model.layout.set_attribute_values('live_size_file_name', self.get_list('Layout', 'installer_size_file_name', default=[]))
+        model.layout.set_attribute_values('live_generic_squashfs_file_name', self.get_list('Layout', 'installer_generic_squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('live_generic_manifest_file_name', self.get_list('Layout', 'installer_generic_manifest_file_name', default=[]))
+        model.layout.set_attribute_values('live_generic_size_file_name', self.get_list('Layout', 'installer_generic_size_file_name', default=[]))
+
+        # Status
+        model.status.is_success_analyze = self.get_boolean('Status', 'is_success_analyze', default=False)
+        model.status.is_success_copy = self.get_boolean('Status', 'is_success_copy', default=False)
+        model.status.is_success_extract = self.get_boolean('Status', 'is_success_extract', default=False)
+        model.status.iso_template = self.get_value('Status', 'iso_template', default=None)
+        model.status.iso_checksum = self.get_value('Status', 'iso_checksum', default=None)
+        model.status.iso_checksum_file_name = self.get_value('Status', 'iso_checksum_file_name', default=None)
+
+        # Options
+        model.options.update_os_release = self.get_boolean('Options', 'update_os_release', default=True)
+        model.options.has_minimal_install = self.get_boolean('Options', 'has_minimal_install', default=False)
+        model.options.boot_configurations = self.get_list('Options', 'boot_configurations', default=None)
+        model.options.compression = self.get_value('Options', 'compression', default=None)
+
+    def _load_model_2026_layout(self):
+        """
+        Load the project model from the 2026 configuration file layout.
+
+        This method should only be called by the _load_model() method.
+
+        Arguments:
+        self : Configuration
+            A derived class of Configuration.
+        """
+
+        logger.log_value('Load project configuration', f'2024 layout from {self.file_path}')
+
+        # The following fields must be set prior to invoking this method:
+        # 1. model.project.directory
+
+        # Project
+        model.project.cubic_version = self.get_value('Project', 'cubic_version')
+        model.project.first_version = self.get_value('Project', 'first_version', default=model.project.cubic_version)
+        model.project.create_date = self.get_value('Project', 'create_date')
+        model.project.modify_date = self.get_value('Project', 'modify_date')
+        # model.project.directory = self.get_value('Project', 'directory')
+        # model.project.configuration = self
+
+        # Original
+        model.original.iso_file_name = self.get_value('Original', 'iso_file_name')
+        model.original.iso_directory = self.get_value('Original', 'iso_directory')
+        model.original.iso_volume_id = self.get_value('Original', 'iso_volume_id')[:32]
+        model.original.iso_release_name = self.get_value('Original', 'iso_release_name')
+        model.original.iso_disk_name = self.get_value('Original', 'iso_disk_name')
+
+        # Custom
+        model.custom.iso_version_number = self.get_value('Custom', 'iso_version_number')
+        model.custom.iso_file_name = self.get_value('Custom', 'iso_file_name')
+        model.custom.iso_directory = self.get_value('Custom', 'iso_directory')
+        model.custom.iso_volume_id = self.get_value('Custom', 'iso_volume_id')[:32]
+        model.custom.iso_release_name = self.get_value('Custom', 'iso_release_name')
+        model.custom.iso_disk_name = self.get_value('Custom', 'iso_disk_name')
+
+        # Layout
+
+        # Casper Section
+        model.layout.set_attribute_values('casper_directory', self.get_list('Layout', 'casper_directory', default=[]))
+        # Initrd file name is not saved in the configuration.
+        # model.layout.set_attribute_values('initrd_file_name', self.get_list('Layout', 'initrd_file_name', default=[]))
+        # Vmlinuz file name is not saved in the configuration.
+        # model.layout.set_attribute_values('vmlinuz_file_name', self.get_list('Layout', 'vmlinuz_file_name', default=[]))
+        # Squashfs Section
+        model.layout.set_attribute_values('squashfs_directory', self.get_list('Layout', 'squashfs_directory', default=[]))
+        model.layout.set_attribute_values('squashfs_file_name', self.get_list('Layout', 'squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('manifest_file_name', self.get_list('Layout', 'manifest_file_name', default=[]))
+        model.layout.set_attribute_values('minimal_remove_file_name', self.get_list('Layout', 'minimal_remove_file_name', default=[]))
+        model.layout.set_attribute_values('standard_remove_file_name', self.get_list('Layout', 'standard_remove_file_name', default=[]))
+        model.layout.set_attribute_values('size_file_name', self.get_list('Layout', 'size_file_name', default=[]))
+        # Minimal Section
+        model.layout.set_attribute_values('minimal_squashfs_file_name', self.get_list('Layout', 'minimal_squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('minimal_manifest_file_name', self.get_list('Layout', 'minimal_manifest_file_name', default=[]))
+        model.layout.set_attribute_values('minimal_size_file_name', self.get_list('Layout', 'minimal_size_file_name', default=[]))
+        # Standard Section
+        model.layout.set_attribute_values('standard_squashfs_file_name', self.get_list('Layout', 'standard_squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('standard_manifest_file_name', self.get_list('Layout', 'standard_manifest_file_name', default=[]))
+        model.layout.set_attribute_values('standard_size_file_name', self.get_list('Layout', 'standard_size_file_name', default=[]))
+        # Live / Installer Section
+        model.layout.set_attribute_values('install_sources_file_name', self.get_list('Layout', 'install_sources_file_name', default=[]))
+        model.layout.set_attribute_values('live_squashfs_file_name', self.get_list('Layout', 'live_squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('live_manifest_file_name', self.get_list('Layout', 'live_manifest_file_name', default=[]))
+        model.layout.set_attribute_values('live_size_file_name', self.get_list('Layout', 'live_size_file_name', default=[]))
+        model.layout.set_attribute_values('live_generic_squashfs_file_name', self.get_list('Layout', 'live_generic_squashfs_file_name', default=[]))
+        model.layout.set_attribute_values('live_generic_manifest_file_name', self.get_list('Layout', 'live_generic_manifest_file_name', default=[]))
+        model.layout.set_attribute_values('live_generic_size_file_name', self.get_list('Layout', 'live_generic_size_file_name', default=[]))
 
         # Status
         model.status.is_success_analyze = self.get_boolean('Status', 'is_success_analyze', default=False)
@@ -806,11 +817,11 @@ class Project(Configuration):
         logger.log_label('Save project configuration')
 
         # Save using the current layout.
-        self._save_model_2024_layout()
+        self._save_model_2026_layout()
 
-    def _save_model_2024_layout(self):
+    def _save_model_2026_layout(self):
         """
-        Save the project model to the 2024 configuration file layout.
+        Save the project model to the 2026 configuration file layout.
 
         This method should only be called by the _save_model() method.
         Be sure to specify the correct sections in the __init__()
@@ -868,14 +879,14 @@ class Project(Configuration):
         self.set('Layout', 'standard_squashfs_file_name', model.layout.standard_squashfs_file_name_as_list)
         self.set('Layout', 'standard_manifest_file_name', model.layout.standard_manifest_file_name_as_list)
         self.set('Layout', 'standard_size_file_name', model.layout.standard_size_file_name_as_list)
-        # Installer / Live Section
-        self.set('Layout', 'installer_sources_file_name', model.layout.installer_sources_file_name_as_list)
-        self.set('Layout', 'installer_squashfs_file_name', model.layout.installer_squashfs_file_name_as_list)
-        self.set('Layout', 'installer_manifest_file_name', model.layout.installer_manifest_file_name_as_list)
-        self.set('Layout', 'installer_size_file_name', model.layout.installer_size_file_name_as_list)
-        self.set('Layout', 'installer_generic_squashfs_file_name', model.layout.installer_generic_squashfs_file_name_as_list)
-        self.set('Layout', 'installer_generic_manifest_file_name', model.layout.installer_generic_manifest_file_name_as_list)
-        self.set('Layout', 'installer_generic_size_file_name', model.layout.installer_generic_size_file_name_as_list)
+        # Live / Installer Section
+        self.set('Layout', 'install_sources_file_name', model.layout.install_sources_file_name_as_list)
+        self.set('Layout', 'live_squashfs_file_name', model.layout.live_squashfs_file_name_as_list)
+        self.set('Layout', 'live_manifest_file_name', model.layout.live_manifest_file_name_as_list)
+        self.set('Layout', 'live_size_file_name', model.layout.live_size_file_name_as_list)
+        self.set('Layout', 'live_generic_squashfs_file_name', model.layout.live_generic_squashfs_file_name_as_list)
+        self.set('Layout', 'live_generic_manifest_file_name', model.layout.live_generic_manifest_file_name_as_list)
+        self.set('Layout', 'live_generic_size_file_name', model.layout.live_generic_size_file_name_as_list)
 
         # Status
         self.set('Status', 'is_success_analyze', model.status.is_success_analyze)

@@ -107,7 +107,6 @@ def setup(action, old_page=None):
     global custom
     global status
     global options
-    global installer
 
     if action == 'back':
 
@@ -568,6 +567,71 @@ def leave(action, new_page=None):
 
         return
 
+    elif action == 'extract-live':
+
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO: Remove this elif clause in the future. [2026-07-25]
+        #       Extract the live squashfs for existing projects from
+        #       Cubic version 2026.07.106 and earlier.
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
+        displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
+
+        displayer.set_visible('project_page__header_bar_box', False)
+
+        displayer.set_visible('project_page__test_header_bar_button', False)
+
+        # Hide the Delete button on other pages.
+        displayer.set_visible('project_page__delete_header_bar_button', False)
+
+        # Copy the values to the model.
+
+        # Project
+        # model.project.cubic_version = model.application.cubic_version
+        # model.project.create_date = model.project.create_date
+        model.project.modify_date = constructor.get_current_time_stamp()
+        # model.project.directory = model.project.directory
+
+        # Original
+        model.original.iso_file_name = original.iso_file_name.value
+        model.original.iso_directory = original.iso_directory.value
+        model.original.iso_volume_id = original.iso_volume_id.value
+        model.original.iso_release_name = original.iso_release_name.value
+        model.original.iso_disk_name = original.iso_disk_name.value
+        model.original.iso_release_notes_url = original.iso_release_notes_url.value
+
+        # Custom
+        model.custom.iso_version_number = custom.iso_version_number.value
+        model.custom.iso_file_name = custom.iso_file_name.value
+        model.custom.iso_directory = custom.iso_directory.value
+        model.custom.iso_volume_id = custom.iso_volume_id.value
+        model.custom.iso_release_name = custom.iso_release_name.value
+        model.custom.iso_disk_name = custom.iso_disk_name.value
+        model.custom.iso_release_notes_url = custom.iso_release_notes_url.value
+
+        # Status
+        model.status.is_success_analyze = status.is_success_analyze
+        model.status.is_success_copy = status.is_success_copy
+        model.status.is_success_extract = status.is_success_extract
+        model.status.iso_template = status.iso_template
+        model.status.iso_checksum = status.iso_checksum
+        model.status.iso_checksum_file_name = status.iso_checksum_file_name
+
+        # Options
+        model.options.update_os_release = custom.update_os_release.value
+        model.options.has_minimal_install = options.has_minimal_install
+        model.options.boot_configurations = options.boot_configurations
+        model.options.compression = options.compression
+
+        # Save the model values.
+        model.project.configuration.save()
+        save_iso_release_notes_url()
+
+        if custom.is_valid and custom != custom_history.current():
+            custom_history.insert(custom)
+
+        return
+
     elif action == 'next-snaps':
 
         displayer.reset_buttons(is_back_sensitive=False, is_next_sensitive=False)
@@ -755,7 +819,6 @@ def selected_original_iso_file_path(original_iso_file_path):
     global custom
     global status
     global options
-    global installer
 
     if os.path.isfile(original_iso_file_path):
 
@@ -1909,6 +1972,108 @@ def validate_page():
     currently displayed in the user interface.
     """
 
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    # TODO: Replace this functon in the future. [2026-07-25]
+    #       Replace project_page.validate_page() with
+    #       project_page.validate_page_ORIGINAL().
+    #       Extract the live squashfs for existing projects from
+    #       Cubic version 2026.07.106 and earlier.
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
+    is_page_valid = original.is_valid and custom.is_valid
+
+    logger.log_value('Is page valid?', is_page_valid)
+
+    # Original section.
+
+    set_sensitive_original_section(original.is_valid)
+
+    # Custom section.
+
+    set_sensitive_custom_section(original.is_valid)
+    validate_custom_iso_undo_button()
+    validate_custom_iso_redo_button()
+    validate_custom_iso_refresh_button()
+
+    # Navigation buttons.
+
+    # Navigation buttons are also set in the setup() function.
+    if status.iso_template and       \
+       status.is_success_analyze and \
+       status.is_success_copy and    \
+       status.is_success_extract:
+
+        # Handle projects that were created using a Cubic version prior
+        # to version 2026.07.106.
+        file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+        file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+        if os.path.isfile(file_path_1) and os.path.isfile(file_path_2):
+            # Show the Snaps page.
+            # There are multiple squashfs files.
+            # Both the root and live squashfs have been extracted.
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='next-snaps',
+                next_button_style='suggested-action',
+                is_next_sensitive=is_page_valid,
+                is_next_visible=True)
+        elif not os.path.isfile(file_path_2):
+            # Show the Extract page.
+            # There are multiple squashfs files.
+            # The live squashfs has not been extracted.
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Next❭',
+                next_action='extract-live',
+                next_button_style='suggested-action',
+                is_next_sensitive=is_page_valid,
+                is_next_visible=True)
+        else:
+            # Show the Terminal page.
+            # There is only one squashfs file.
+            displayer.reset_buttons(
+                back_button_label='❬Back',
+                back_action='back',
+                back_button_style=None,
+                is_back_sensitive=True,
+                is_back_visible=True,
+                next_button_label='Customize❭',
+                next_action='next-terminal',
+                next_button_style='suggested-action',
+                is_next_sensitive=is_page_valid,
+                is_next_visible=True)
+    else:
+        # Show the Extract page.
+        displayer.reset_buttons(
+            back_button_label='❬Back',
+            back_action='back',
+            back_button_style=None,
+            is_back_sensitive=True,
+            is_back_visible=True,
+            next_button_label='Next❭',
+            next_action='next',
+            next_button_style='suggested-action',
+            is_next_sensitive=is_page_valid,
+            is_next_visible=True)
+
+
+def validate_page_ORIGINAL():
+    """
+    Show or hide buttons and set the original and custom sections
+    sensitive or insensitive. Validate page relies on the current values
+    of original fields and custom fields, and does not depend on what is
+    currently displayed in the user interface.
+    """
+
     is_page_valid = original.is_valid and custom.is_valid
 
     logger.log_value('Is page valid?', is_page_valid)
@@ -1961,61 +2126,6 @@ def validate_page():
                 next_button_style='suggested-action',
                 is_next_sensitive=is_page_valid,
                 is_next_visible=True)
-    else:
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style='suggested-action',
-            is_next_sensitive=is_page_valid,
-            is_next_visible=True)
-
-
-def validate_page_ORIGINAL():
-    """
-    Show or hide buttons and set the original and custom sections
-    sensitive or insensitive. Validate page relies on the current values
-    of original fields and custom fields, and does not depend on what is
-    currently displayed in the user interface.
-    """
-
-    is_page_valid = original.is_valid and custom.is_valid
-
-    logger.log_value('Is page valid?', is_page_valid)
-
-    # Original section.
-
-    set_sensitive_original_section(original.is_valid)
-
-    # Custom section.
-
-    set_sensitive_custom_section(original.is_valid)
-    validate_custom_iso_undo_button()
-    validate_custom_iso_redo_button()
-    validate_custom_iso_refresh_button()
-
-    # Navigation buttons.
-
-    # Navigation buttons are also set in the setup() function.
-    if status.iso_template and       \
-       status.is_success_analyze and \
-       status.is_success_copy and    \
-       status.is_success_extract:
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next-snaps',
-            next_button_style='suggested-action',
-            is_next_sensitive=is_page_valid,
-            is_next_visible=True)
     else:
         displayer.reset_buttons(
             back_button_label='❬Back',

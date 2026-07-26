@@ -670,14 +670,14 @@ def initialize_model():
     #   model.layout.standard_squashfs_file_name
     #   model.layout.standard_manifest_file_name
     #   model.layout.standard_size_file_name
-    # Installer / Live Section
-    #   model.layout.installer_sources_file_name
-    #   model.layout.installer_squashfs_file_name
-    #   model.layout.installer_manifest_file_name
-    #   model.layout.installer_size_file_name
-    #   model.layout.installer_generic_squashfs_file_name
-    #   model.layout.installer_generic_manifest_file_name
-    #   model.layout.installer_generic_size_file_name
+    # Live / Installer Section
+    #   model.layout.install_sources_file_name
+    #   model.layout.live_squashfs_file_name
+    #   model.layout.live_manifest_file_name
+    #   model.layout.live_size_file_name
+    #   model.layout.live_generic_squashfs_file_name
+    #   model.layout.live_generic_manifest_file_name
+    #   model.layout.live_generic_size_file_name
     model.layout.reset()
 
     model.status.is_success_copy = None

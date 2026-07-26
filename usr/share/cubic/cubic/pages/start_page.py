@@ -113,6 +113,51 @@ def setup(action, old_page=None):
         for directory in model.application.projects:
             displayer.append_combo_box_text('start_page__project_directory_combo_box_text', directory)
 
+        # Menu items
+        # Uncomment the lines below to show a ★ next to the menu item.
+        # Remember to uncomment lines in navigator.on_clicked_?_menu_button()
+        # functions that remove the ★ once the site has been visited.
+
+        # Alert Label
+        # Do not show the alert label.
+        # widget = model.builder.get_object('alert_label')
+        # widget.set_visible(False)
+
+        # Alert Label
+        # Show the alert label if all of the sites have not been visited.
+        # widget = model.builder.get_object('alert_label')
+        # widget.set_visible(len(model.application.visited_sites) < len(CUBIC_SITES))
+
+        # if CUBIC_WIKI not in model.application.visited_sites:
+        #     widget = model.builder.get_object('wiki_menu_button')
+        #     label = widget.props.text
+        #     new_text = constructor.add_prefix(STAR, label)
+        #     if new_text: displayer.set_button_label('wiki_menu_button', new_text)
+
+        # if CUBIC_PAGE_HELP not in model.application.visited_sites:
+        #     widget = model.builder.get_object('page_help_menu_button')
+        #     label = widget.props.text
+        #     new_text = constructor.add_prefix(STAR, label)
+        #     if new_text: displayer.set_button_label('page_help_menu_button', new_text)
+
+        # if CUBIC_WEBSITE not in model.application.visited_sites:
+        #     widget = model.builder.get_object('website_menu_button')
+        #     label = widget.props.text
+        #     new_text = constructor.add_prefix(STAR, label)
+        #     if new_text: displayer.set_button_label('website_menu_button', new_text)
+
+        # if CUBIC_ABOUT not in model.application.visited_sites:
+        #     widget = model.builder.get_object('about_menu_button')
+        #     label = widget.props.text
+        #     new_text = constructor.add_prefix(STAR, label)
+        #     if new_text: displayer.set_button_label('about_menu_button', new_text)
+
+        # if CUBIC_DONATE not in model.application.visited_sites:
+        #     widget = model.builder.get_object('donate_menu_button')
+        #     label = widget.get_label()
+        #     new_text = constructor.add_prefix(STAR, label)
+        #     if new_text: displayer.set_button_label('donate_menu_button', new_text)
+
         displayer.reset_buttons(
             back_button_label='❬Back',
             back_action='back',
@@ -700,14 +745,14 @@ def initialize_model():
     #   model.layout.standard_squashfs_file_name
     #   model.layout.standard_manifest_file_name
     #   model.layout.standard_size_file_name
-    # Installer / Live Section
-    #   model.layout.installer_sources_file_name
-    #   model.layout.installer_squashfs_file_name
-    #   model.layout.installer_manifest_file_name
-    #   model.layout.installer_size_file_name
-    #   model.layout.installer_generic_squashfs_file_name
-    #   model.layout.installer_generic_manifest_file_name
-    #   model.layout.installer_generic_size_file_name
+    # Live / Installer Section
+    #   model.layout.install_sources_file_name
+    #   model.layout.live_squashfs_file_name
+    #   model.layout.live_manifest_file_name
+    #   model.layout.live_size_file_name
+    #   model.layout.live_generic_squashfs_file_name
+    #   model.layout.live_generic_manifest_file_name
+    #   model.layout.live_generic_size_file_name
     model.layout.reset()
 
     model.status.is_success_analyze = None

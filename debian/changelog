@@ -1,11 +1,31 @@
 cubic (2026.07) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
 
+  * Issues fixed in version 2026.07.107:
+
+  - Use the term "Live" to refer to the "Installer" file system for consistency
+    with the project directory names (custom-live and backup-live). Accordingly,
+    layout variables were renamed from "installer…" to "live…", and related code
+    comments were updated. Updated to the 2006 project configuration using the
+    new key names.
+  - Fixed Bug GH:#484, Cubic 2026.07.106 crashes when opening an existing
+    project (FileNotFoundError: state.json.tmp). Added new action "extract-live"
+    on the Project page and the Extract page to extract the live squashfs for
+    existing projects.
+  - Fixed Bug GH:#483, On the Generate page, the compress Linux file system step
+    shows success at 75% complete.
+  - Calculate the actual size of the live file system, instead of copying it
+    from the original ISO, since the live file system is now being extracted.
+  - Added a menu alert (★) and a page help alert (★) on the Snaps page and the
+    Terminal page to point users to information on new features.
+  - Renamed the "Donate to Cubic" main menu item to "Support Cubic", linking to
+    https://github.com/PJ-Singh-001/Cubic/wiki/Support-Cubic.
+
   * Issues fixed in version 2026.07.106:
 
   - Implemented Enhancement GH#482, Add a Remove Snaps Feature.
   - Implemented Enhancement GH#461, Optionally extract the live installer
     overlay file system.
-  - Fixed Bug Gh#429, The generated iso file is not bootable. Add the correct
+  - Fixed Bug GH:#429, The generated iso file is not bootable. Add the correct
     architecture (such as amd64) to the README.diskdefines file, which is
     required for VirtualBox to boot the ISO.
   - Added a new Snaps page to remove selected snap packages.
@@ -736,4 +756,4 @@ cubic (2026.07) stonking resolute questing plucky oracular noble mantic lunar ki
     customized OS.
   - Merged from Experimental branch, revision 19
 
- -- PJ Singh <psingh.cubic@gmail.com>  Mon, 20 Jul 2026 13:36:16 -0400
+ -- PJ Singh <psingh.cubic@gmail.com>  Sun, 26 Jul 2026 01:33:32 -0400

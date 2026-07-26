@@ -46,6 +46,7 @@ import time
 from cubic.constants import BOLD_RED, NORMAL
 from cubic.constants import FINAL_PERCENT
 from cubic.constants import OK, ERROR, PROCESSING, INFORMATION
+from cubic.constants import STAR
 from cubic.constants import SLEEP_2000_MS
 from cubic.constants import TIME_STAMP_FORMAT_Y_M_DTH_M_S_FZ
 from cubic.navigator import InterruptException
@@ -153,6 +154,18 @@ def setup(action, old_page=None):
     error : str
         To automatically transition to an error page.
     """
+
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    # TODO: Remove in a future release [2026-07-25]
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    # Show page help alert.
+    widget = model.builder.get_object('page_help_menu_button')
+    label = widget.props.text
+    new_text = constructor.add_prefix(STAR, label)
+    if new_text: displayer.set_button_label('page_help_menu_button', new_text)
+    # Show the menu alert.
+    widget = model.builder.get_object('alert_label')
+    widget.set_visible(True)
 
     if action == 'back':
 
@@ -443,6 +456,18 @@ def leave(action, new_page=None):
         # Save the model values.
         model.project.configuration.save()
 
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO: Remove in a future release [2026-07-25]
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # Hide the page help alert.
+        widget = model.builder.get_object('page_help_menu_button')
+        label = widget.props.text
+        new_text = constructor.remove_prefix(STAR, label)
+        if new_text: displayer.set_button_label('page_help_menu_button', new_text)
+        # Hide the menu alert.
+        widget = model.builder.get_object('alert_label')
+        widget.set_visible(False)
+
         return
 
     elif action == 'next':
@@ -528,6 +553,18 @@ def leave(action, new_page=None):
 
         # Pause to allow the user to see the result.
         time.sleep(SLEEP_2000_MS)
+
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO: Remove in a future release [2026-07-25]
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # Hide the page help alert.
+        widget = model.builder.get_object('page_help_menu_button')
+        label = widget.props.text
+        new_text = constructor.remove_prefix(STAR, label)
+        if new_text: displayer.set_button_label('page_help_menu_button', new_text)
+        # Hide the menu alert.
+        widget = model.builder.get_object('alert_label')
+        widget.set_visible(False)
 
         return
 

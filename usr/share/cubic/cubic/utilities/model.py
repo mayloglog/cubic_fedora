@@ -117,7 +117,7 @@ custom.iso_release_notes_url = None
 # 2. General Section - squashfs directory
 # 3. Minimal Section - minimal install squashfs files
 # 4. Standard Section - standard install squashfs files
-# 5. Installer / Live Section - installer yaml and installer squashfs files
+# 5. Live / Installer Section - install sources and live squashfs files
 # 6. Additional Section - additional directory or file paths
 
 layout = Attributes('layout')
@@ -210,25 +210,25 @@ layout.standard_manifest_file_name = 'ubuntu-server-minimal.ubuntu-server.manife
 layout.standard_size_file_name = 'minimal.standard.size', False
 layout.standard_size_file_name = 'ubuntu-server-minimal.ubuntu-server.size', False
 
-# 5. Installer / Live Section
+# 5. Live / Installer Section
 
-layout.installer_sources_file_name = 'install-sources.yaml', False
+layout.install_sources_file_name = 'install-sources.yaml', False
 
-layout.installer_squashfs_file_name = 'installer.squashfs', False
-layout.installer_squashfs_file_name = 'minimal.standard.live.squashfs', False
-layout.installer_squashfs_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.squashfs', False
+layout.live_squashfs_file_name = 'installer.squashfs', False
+layout.live_squashfs_file_name = 'minimal.standard.live.squashfs', False
+layout.live_squashfs_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.squashfs', False
 
-layout.installer_manifest_file_name = 'minimal.standard.live.manifest', False
-layout.installer_manifest_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.manifest', False
+layout.live_manifest_file_name = 'minimal.standard.live.manifest', False
+layout.live_manifest_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.manifest', False
 
-layout.installer_size_file_name = 'minimal.standard.live.size', False
-layout.installer_size_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.size', False
+layout.live_size_file_name = 'minimal.standard.live.size', False
+layout.live_size_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.size', False
 
-layout.installer_generic_squashfs_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.generic.squashfs', False
+layout.live_generic_squashfs_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.generic.squashfs', False
 
-layout.installer_generic_manifest_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.generic.manifest', False
+layout.live_generic_manifest_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.generic.manifest', False
 
-layout.installer_generic_size_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.generic.size', False
+layout.live_generic_size_file_name = 'ubuntu-server-minimal.ubuntu-server.installer.generic.size', False
 
 # 6. Additional Section
 

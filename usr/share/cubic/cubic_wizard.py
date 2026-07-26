@@ -51,7 +51,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 from cubic.constants import CUBIC_COPYRIGHT
-from cubic.constants import STAR, CUBIC_WEBSITE, CUBIC_WIKI, CUBIC_PAGE_HELP, CUBIC_DONATE, CUBIC_SITES, CUBIC_URLS
+from cubic.constants import CUBIC_WEBSITE, CUBIC_URLS
 from cubic import navigator
 from cubic.utilities import constructor
 from cubic.utilities import logger
@@ -132,7 +132,7 @@ try:
     # Get the running Cubic version.
     model.application.cubic_version = constructor.get_package_version('cubic')
     ### TODO: FOR TESTING ONLY
-    ### model.application.cubic_version = '2024.08-87-release~202402210132~ubuntu23.10.1'
+    # model.application.cubic_version = '2026.07.106-release~202607201745~ubuntu26.04.1'
 
     # Get the running kernel version.
     model.application.kernel_version = constructor.get_kernel_version()
@@ -235,47 +235,15 @@ try:
     # Menu
     #
 
-    # Alert label
-    widget = model.builder.get_object('alert_label')
-    # Show the alert label if all of the sites have not been visited.
-    # widget.set_visible(len(model.application.visited_sites) < len(CUBIC_SITES))
-    # Do not show the alert label.
-    widget.set_visible(False)
+    # The following may be prefixed with ★ on the Start page setup()
+    # function.
 
-    # Menu items
-    # Uncomment the lines below to show a ★ next to the menu item.
-    # Remember to uncomment lines in navigator.on_clicked_?_menu_button()
-    # functions to remove the ★ once the site has been visited.
-
-    # if CUBIC_WIKI not in model.application.visited_sites:
-    #     widget = model.builder.get_object('wiki_menu_button')
-    #     label = widget.props.text
-    #     new_text = constructor.add_prefix(STAR, label)
-    #     if new_text: widget.props.text = new_text
-
-    # if CUBIC_PAGE_HELP not in model.application.visited_sites:
-    #     widget = model.builder.get_object('page_help_menu_button')
-    #     label = widget.props.text
-    #     new_text = constructor.add_prefix(STAR, label)
-    #     if new_text: widget.props.text = new_text
-
-    # if CUBIC_WEBSITE not in model.application.visited_sites:
-    #     widget = model.builder.get_object('website_menu_button')
-    #     label = widget.props.text
-    #     new_text = constructor.add_prefix(STAR, label)
-    #     if new_text: widget.props.text = new_text
-
-    # if CUBIC_ABOUT not in model.application.visited_sites:
-    #     widget = model.builder.get_object('about_menu_button')
-    #     label = widget.props.text
-    #     new_text = constructor.add_prefix(STAR, label)
-    #     if new_text: widget.props.text = new_text
-
-    # if CUBIC_DONATE not in model.application.visited_sites:
-    #     widget = model.builder.get_object('donate_menu_button')
-    #     label = widget.get_label()
-    #     new_text = constructor.add_prefix(STAR, label)
-    #     if new_text: widget.set_label(new_text)
+    # Alert Label
+    # Cubic Wiki
+    # Cubic Page Help
+    # Cubic Website
+    # Cubic About
+    # Cubic Donate
 
     #
     # File Choosers

@@ -205,7 +205,7 @@ class BootTab(FilesTab):
         # squashfs_directory = model.layout.squashfs_directory
         squashfs_directory = model.layout.squashfs_directory.split(os.path.sep)[0]
         casper_directory = model.layout.casper_directory
-        has_subiquity = bool(model.layout.installer_sources_file_name)
+        has_subiquity = bool(model.layout.install_sources_file_name)
         new_vmlinuz_file_name = model.kernel_details_list[model.selected_kernel_index]['new_vmlinuz_file_name']
         new_initrd_file_name = model.kernel_details_list[model.selected_kernel_index]['new_initrd_file_name']
 

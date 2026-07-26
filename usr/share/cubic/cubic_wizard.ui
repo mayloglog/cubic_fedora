@@ -152,7 +152,7 @@
         </child>
         <child>
           <object class="GtkButton" id="donate_menu_button">
-            <property name="label" translatable="yes">Donate to Cubic</property>
+            <property name="label" translatable="yes">☕ Support Cubic</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>

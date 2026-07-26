@@ -655,7 +655,7 @@ def _update_kernel_details_list(kernel_details_list):
             if len(kernel_details_list) > 1:
                 if note: note += ' '  # os.linesep
                 note += 'Select this kernel if you are unable to boot the disk using other kernel versions.'
-            if model.layout.installer_sources_file_name:
+            if model.layout.install_sources_file_name:
                 # If Subiquity is used, select the original kernel.
                 # Added for Cubic 2023.03.78 to support Ubuntu 23.04.
                 if note: note += ' '  # os.linesep

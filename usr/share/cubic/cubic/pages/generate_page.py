@@ -171,7 +171,7 @@ def enter(action, old_page=None):
     if action == 'generate':
 
         # --------------------------------------------------------------
-        # Copy boot files.
+        # Copy boot files
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__copy_boot_files', PROCESSING)
@@ -181,33 +181,77 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Create squashfs.
+        # Create squashfs
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__create_squashfs', PROCESSING)
         time.sleep(SLEEP_0500_MS)
 
-        if model.layout.minimal_squashfs_file_name:
+        # TODO: Should we check model.layout.squashfs_file_name, instead
+        # of model.layout.minimal_squashfs_file_name, as on the extract
+        # page?
+        if not model.layout.minimal_squashfs_file_name:
 
-            total_files = 2
+            # There is only one squashfs file.
+
+            total_files = 1
 
             # Root environment
             file_number = 0  # 1
             source_file_path = model.project.custom_root_directory
             directory = model.layout.squashfs_directory
+            file_name = model.layout.squashfs_file_name
+            target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+
+            message = 'Compressing the Linux file system.'
+            displayer.update_label('generate_page__create_squashfs_message', message, False)
+
+            is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
+            logger.log_value('Done compressing', f'{file_number + 1} of {total_files}: {file_name}')
+
+        else:
+
+            # There are multiple squashfs files.
+
+            total_files = 2
+
+            # ----------------------------------------------------------
+            # Root Environment
+            # ----------------------------------------------------------
+
+            file_number = 0  # 1
+            source_file_path = model.project.custom_root_directory
+            directory = model.layout.squashfs_directory
             file_name = model.layout.minimal_squashfs_file_name
             target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+
+            file_number_text = constructor.number_as_text(file_number + 1)
+            total_files_text = constructor.number_as_text(total_files)
+            message = f'Compressing Linux file system {file_number_text} of {total_files_text}.'
+            displayer.update_label('generate_page__create_squashfs_message', message, False)
+
             is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
+
             if is_error: return  # Stay on this page.
             logger.log_value('Done compressing', f'{file_number + 1} of {total_files}: {file_name}')
 
-            # Live environment
+            # ----------------------------------------------------------
+            # Live Environment
+            # ----------------------------------------------------------
+
             file_number = 1  # 2
             source_file_path = model.project.custom_live_directory
             directory = model.layout.squashfs_directory
-            file_name = model.layout.installer_squashfs_file_name
+            file_name = model.layout.live_squashfs_file_name
             target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+
+            file_number_text = constructor.number_as_text(file_number + 1)
+            total_files_text = constructor.number_as_text(total_files)
+            message = f'Compressing Linux file system {file_number_text} of {total_files_text}.'
+            displayer.update_label('generate_page__create_squashfs_message', message, False)
+
             is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
+
             if is_error: return  # Stay on this page.
             logger.log_value('Done compressing', f'{file_number + 1} of {total_files}: {file_name}')
 
@@ -225,18 +269,6 @@ def enter(action, old_page=None):
                 # return True  # (Error)
                 return
 
-        else:
-
-            total_files = 1
-
-            # Root environment
-            file_number = 0  # 1
-            source_file_path = model.project.custom_root_directory
-            directory = model.layout.squashfs_directory
-            file_name = model.layout.squashfs_file_name
-            target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
-            is_error = create_squashfs(source_file_path, target_file_path, file_number, total_files)
-
         message = 'Success.'
         displayer.update_label('generate_page__create_squashfs_message', message, False)
         displayer.update_status('generate_page__create_squashfs', OK)
@@ -246,7 +278,7 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Update file system size.
+        # Update file system size
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__update_file_system_size', PROCESSING)
@@ -256,7 +288,7 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Update disk and installer information.
+        # Update disk and installer information
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__update_disk_and_installer_info', PROCESSING)
@@ -266,7 +298,7 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Update MD5 checksums.
+        # Update MD5 checksums
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__update_checksums', PROCESSING)
@@ -276,7 +308,7 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Check disk size.
+        # Check disk size
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__check_custom_disk_size', PROCESSING)
@@ -286,7 +318,7 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Create links for attributes.
+        # Create links for attributes
         # --------------------------------------------------------------
 
         # This should be fast, so no need to display progress.
@@ -294,7 +326,7 @@ def enter(action, old_page=None):
         create_links_for_attributes()
 
         # --------------------------------------------------------------
-        # Create disk image.
+        # Create disk image
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__create_iso_image', PROCESSING)
@@ -305,7 +337,7 @@ def enter(action, old_page=None):
         time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
-        # Calculate disk image checksum.
+        # Calculate disk image checksum
         # --------------------------------------------------------------
 
         displayer.update_status('generate_page__calculate_iso_image_checksum', PROCESSING)
@@ -591,6 +623,67 @@ def create_squashfs(source_file_path, target_file_path, file_number, total_files
     message = f'Using {model.options.compression} compression.'
     displayer.update_label('generate_page__create_squashfs_message', message, False)
 
+    # Create the standard squashfs file, such as:
+    # • filesystem.squashfs
+    # • minimal.standard.squashfs
+    # • ubuntu-server-minimal.ubuntu-server.squashfs
+    # • etc.
+
+    # Pkexec is required.
+    program = os.path.join(model.application.directory, 'commands', 'compress-root')
+    command = ['pkexec', program, source_file_path, target_file_path, model.options.compression]
+
+    # Show % in progress by setting text to None.
+    # displayer.update_progress_bar_text('generate_page__create_squashfs_progress_bar', None)
+    displayer.update_progress_bar_text('generate_page__create_squashfs_progress_bar', f'0.0{GAP}%')
+
+    # The progress callback function.
+    def progress_callback(percent):
+        # total_percent = Start % + Δ %
+        total_percent = (FINAL_PERCENT * file_number + percent) / total_files
+        # displayer.update_progress_bar_percent('generate_page__create_squashfs_progress_bar', total_percent)
+        displayer.update_progress_bar_text('generate_page__create_squashfs_progress_bar', f'{locale.format_string("%.1f", total_percent, True)}{GAP}%')
+        displayer.update_progress_bar_percent('generate_page__create_squashfs_progress_bar', total_percent)
+        if total_percent % 5 == 0:
+            logger.log_value('Completed', f'{total_percent:n}%')
+
+    try:
+        track_progress(command, progress_callback)
+    except InterruptException as exception:
+        if 'No space left on device' in str(exception):
+            # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
+            message = 'Error. Not enough space on the disk.'
+        else:
+            # message = '<span foreground="red">Error. Unable to create the compressed Linux file system.</span>'
+            message = 'Error. Unable to create the compressed Linux file system.'
+        displayer.update_label('generate_page__create_squashfs_message', message, True)
+        displayer.update_status('generate_page__create_squashfs', ERROR)
+        logger.log_value('Propagate exception', exception)
+        raise exception
+    except Exception as exception:
+        if 'No space left on device' in str(exception):
+            # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
+            message = 'Error. Not enough space on the disk.'
+        else:
+            # message = '<span foreground="red">Error. Unable to create the compressed Linux file system.</span>'
+            message = 'Error. Unable to create the compressed Linux file system.'
+        displayer.update_label('generate_page__create_squashfs_message', message, True)
+        displayer.update_status('generate_page__create_squashfs', ERROR)
+        logger.log_value('Do not propagate exception', exception)
+        return True  # (Error)
+
+    return False  # (No error)
+
+
+def create_squashfs_01(source_file_path, target_file_path, file_number, total_files):
+
+    logger.log_label('Compress the Linux file system')
+    logger.log_value('The source file path is', source_file_path)
+    logger.log_value('The target file path is', target_file_path)
+
+    message = f'Using {model.options.compression} compression.'
+    displayer.update_label('generate_page__create_squashfs_message', message, False)
+
     if total_files > 1:
         file_number_text = constructor.number_as_text(file_number + 1)
         total_files_text = constructor.number_as_text(total_files)
@@ -757,11 +850,11 @@ def create_squashfs_ORIGINAL():
             return True  # (Error)
     '''
     ### TODO: TESTING
-    # Create a link to minimal_squashfs_file_name from installer_squashfs_file_name.
+    # Create a link to minimal_squashfs_file_name from live_squashfs_file_name.
     if model.layout.minimal_squashfs_file_name:
         directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
         file_name = model.layout.minimal_squashfs_file_name
-        link_name = model.layout.installer_squashfs_file_name
+        link_name = model.layout.live_squashfs_file_name
         _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
         if signal_status:
             # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
@@ -772,11 +865,11 @@ def create_squashfs_ORIGINAL():
     '''
     '''
     ### TODO: TESTING
-    # Create a link to minimal_squashfs_file_name from installer_generic_squashfs_file_name.
+    # Create a link to minimal_squashfs_file_name from live_generic_squashfs_file_name.
     if model.layout.minimal_squashfs_file_name:
         directory_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory)
         file_name = model.layout.minimal_squashfs_file_name
-        link_name = model.layout.installer_generic_squashfs_file_name
+        link_name = model.layout.live_generic_squashfs_file_name
         _, _, signal_status = file_utilities.create_link(directory_path, file_name, link_name)
         if signal_status:
             # logger.log_value('Error. Unable to create link', f'{link_name} to {file_name}')
@@ -885,14 +978,14 @@ def update_file_system_size():
     # The file system size files appear on various ISOs as follows:
     # • standard_size_file_name............ Desktop, Server
     # • minimal_size_file_name............. Desktop, Server
-    # • installer_size_file_name........... Desktop, Server
-    # • installer_generic_size_file_name... Server only
+    # • live_size_file_name........... Desktop, Server
+    # • live_generic_size_file_name... Server only
     # • size_file_name..................... Desktop, Server
 
     size_1_in_bytes = 0  # Customized file system size
-    size_2_in_bytes = 0  # Installer file system size
-    size_3_in_bytes = 0  # Generic installer file system size
-    size_4_in_bytes = 0  # File system size
+    size_2_in_bytes = 0  # Live file system size
+    size_3_in_bytes = 0  # Generic live file system size
+    size_4_in_bytes = 0  # Total file system size
 
     # Calculate the customized file system size.
     try:
@@ -931,25 +1024,53 @@ def update_file_system_size():
         logger.log_value('Do not propagate exception', exception)
         return True  # (Error)
 
-    # Calculate the installer file system size.
-    if model.layout.installer_size_file_name:
-        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.installer_size_file_name)
-        size_2_in_bytes = int(file_utilities.read_file(file_path))
-        size_2_in_mib = size_2_in_bytes / MIB
-        size_2_in_gib = size_2_in_bytes / GIB
-        logger.log_value('The installer Linux file system size is', f'{locale.format_string("%.2f", size_2_in_gib, True)} GiB ({size_2_in_bytes:n} bytes)')
+    # Calculate the live file system size.
+    if model.layout.live_size_file_name:
+        try:
+            # Calculate the size.
+            # Pkexec is required.
+            program = os.path.join(model.application.directory, 'commands', 'file-size')
+            command = ['pkexec', program, model.project.custom_live_directory]
+            result, exit_status, signal_status = execute_synchronous(command)
+            # size_2_information = re.search(r'^(\d+)', result)
+            # The following regex is a workaround for non-UTF8 encoded
+            # scripts such as Cyrillic, because the result from the pkexec
+            # processes is preceded with the error:
+            # "GLib-CRITICAL g_variant_new_string assertion 'g_utf8_validate
+            # (string, -1, NULL)' failed."
+            # See https://github.com/PJ-Singh-001/Cubic/issues/420.
+            escaped_path = re.escape(model.project.custom_live_directory)
+            size_2_information = re.search(rf'(\d+)\s*{escaped_path}', result)
+            size_2_in_bytes = int(size_2_information.group(1))
+            size_2_in_mib = size_2_in_bytes / MIB
+            size_2_in_gib = size_2_in_bytes / GIB
+            logger.log_value('The live Linux file system size is', f'{locale.format_string("%.2f", size_2_in_gib, True)} GiB ({size_2_in_bytes:n} bytes)')
+        except InterruptException as exception:
+            logger.log_value('Unable to get the live file system size for', model.project.custom_live_directory)
+            logger.log_value('The exception is', exception)
+            message = 'Error. Unable to get the live file system size.'
+            displayer.update_label('generate_page__update_file_system_size_message', message, True)
+            displayer.update_status('generate_page__update_file_system_size', ERROR)
+            logger.log_value('Propagate exception', exception)
+            raise exception
+        except Exception as exception:
+            logger.log_value('Unable to get the live file system size for', model.project.custom_live_directory)
+            logger.log_value('The exception is', exception)
+            message = 'Error. Unable to get the live file system size.'
+            displayer.update_label('generate_page__update_file_system_size_message', message, True)
+            displayer.update_status('generate_page__update_file_system_size', ERROR)
+            logger.log_value('Do not propagate exception', exception)
+            return True  # (Error)
 
-    # Calculate the generic installer file system size.
-    if model.layout.installer_generic_size_file_name:
-        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.installer_generic_size_file_name)
+    # Calculate the generic live file system size.
+    if model.layout.live_generic_size_file_name:
+        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.live_generic_size_file_name)
         size_3_in_bytes = int(file_utilities.read_file(file_path))
         size_3_in_mib = size_3_in_bytes / MIB
         size_3_in_gib = size_3_in_bytes / GIB
-        logger.log_value(
-            'The generic installer Linux file system size is',
-            f'{locale.format_string("%.2f", size_3_in_gib, True)} GiB ({size_3_in_bytes:n} bytes)')
+        logger.log_value('The generic live Linux file system size is', f'{locale.format_string("%.2f", size_3_in_gib, True)} GiB ({size_3_in_bytes:n} bytes)')
 
-    # Calculate the file system size.
+    # Calculate the total file system size.
     size_4_in_bytes = size_1_in_bytes + \
                       size_2_in_bytes + \
                       size_3_in_bytes
@@ -1012,7 +1133,7 @@ def update_file_system_size():
             displayer.update_status('generate_page__update_file_system_size', ERROR)
             return True  # (Error)
 
-    # Write the file system size.
+    # Write the total file system size.
     if model.layout.size_file_name:
         try:
             file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.size_file_name)
@@ -1084,20 +1205,20 @@ def update_disk_and_installer_info():
         logger.log_value('Do not propagate exception', exception)
         return True  # (Error)
 
-    # Update the installer sources file.
+    # Update the install sources file.
 
     try:
-        _update_installer_sources_file()
+        _update_install_sources_file()
     except InterruptException as exception:
-        logger.log_value('Unable to update the installer sources in', model.layout.installer_sources_file_name)
-        message = 'Error. Unable to update the installer sources.'
+        logger.log_value('Unable to update the install sources in', model.layout.install_sources_file_name)
+        message = 'Error. Unable to update the install sources.'
         displayer.update_label('generate_page__update_disk_and_installer_info_message', message, True)
         displayer.update_status('generate_page__update_disk_and_installer_info', ERROR)
         logger.log_value('Propagate exception', exception)
         raise exception
     except Exception as exception:
-        logger.log_value('Unable to update the installer sources to', model.layout.installer_sources_file_name)
-        message = 'Error. Unable to update the installer sources.'
+        logger.log_value('Unable to update the install sources to', model.layout.install_sources_file_name)
+        message = 'Error. Unable to update the install sources.'
         displayer.update_label('generate_page__update_disk_and_installer_info_message', message, True)
         displayer.update_status('generate_page__update_disk_and_installer_info', ERROR)
         logger.log_value('Do not propagate exception', exception)
@@ -1225,9 +1346,9 @@ def _update_disk_info():
     file_utilities.write_line(line, file_path, True)
 
 
-def _update_installer_sources_file():
+def _update_install_sources_file():
     """
-    Update the installer sources yaml file. Set the minimal install as
+    Update the install sources yaml file. Set the minimal install as
     default.
 
     Returns:
@@ -1238,11 +1359,11 @@ def _update_installer_sources_file():
         The exception that occurred.
     """
 
-    if model.layout.installer_sources_file_name:
+    if model.layout.install_sources_file_name:
 
-        logger.log_label('Update the installer sources configuration')
+        logger.log_label('Update the install sources configuration')
 
-        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.installer_sources_file_name)
+        file_path = os.path.join(model.project.custom_disk_directory, model.layout.squashfs_directory, model.layout.install_sources_file_name)
         logger.log_value('File path', file_path)
 
         yaml_list = file_utilities.read_yaml_file(file_path)
@@ -1251,7 +1372,7 @@ def _update_installer_sources_file():
         # Make the minimal squashfs file default. Do not use the
         # standard squashfs file because it does not work for the
         # installer.
-        yaml_list = _update_installer_sources_yaml(yaml_list, model.layout.minimal_squashfs_file_name)
+        yaml_list = _update_install_sources_yaml(yaml_list, model.layout.minimal_squashfs_file_name)
         logger.log_value('Updated configuration', yaml_list)
 
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
@@ -1267,7 +1388,7 @@ def _update_installer_sources_file():
         file_utilities.save_yaml_file(yaml_list, file_path)
 
 
-def _update_installer_sources_yaml(yaml_items, path):
+def _update_install_sources_yaml(yaml_items, path):
     """
     Create a new yaml configuration using information from the supplied
     configuration and using values from this project.
@@ -1422,12 +1543,12 @@ def update_checksums():
             model.layout.minimal_remove_file_name)
         exclude_paths.append(file_path)
 
-    # Exclude the installer sources backup file if present.
-    if model.layout.installer_sources_file_name:
+    # Exclude the install sources backup file if present.
+    if model.layout.install_sources_file_name:
         file_path = os.path.join(                                 \
             model.project.custom_disk_directory,                  \
             model.layout.squashfs_directory,                      \
-            f'{model.layout.installer_sources_file_name}.original')
+            f'{model.layout.install_sources_file_name}.original')
         exclude_paths.append(file_path)
 
     logger.log_value('Exclude files from the checksum', exclude_paths)
@@ -1756,12 +1877,12 @@ def _get_xorriso_command():
     else:
         exclude_1 = ''
 
-    # Exclude the installer sources backup file if present.
-    if model.layout.installer_sources_file_name:
+    # Exclude the install sources backup file if present.
+    if model.layout.install_sources_file_name:
         file_path = os.path.join(                                 \
             model.project.custom_disk_directory,                  \
             model.layout.squashfs_directory,                      \
-            f'{model.layout.installer_sources_file_name}.original')
+            f'{model.layout.install_sources_file_name}.original')
         exclude_2 = f'-m "{file_path}"'
     else:
         exclude_2 = ''
@@ -1835,14 +1956,14 @@ def create_links_for_attributes():
     create_links('standard_manifest_file_name', directory_path)
     create_links('standard_size_file_name', directory_path)
 
-    # Installer / Live Section
-    create_links('installer_sources_file_name', directory_path)
-    create_links('installer_squashfs_file_name', directory_path)
-    create_links('installer_manifest_file_name', directory_path)
-    create_links('installer_size_file_name', directory_path)
-    create_links('installer_generic_squashfs_file_name', directory_path)
-    create_links('installer_generic_manifest_file_name', directory_path)
-    create_links('installer_generic_size_file_name', directory_path)
+    # Live / Installer Section
+    create_links('install_sources_file_name', directory_path)
+    create_links('live_squashfs_file_name', directory_path)
+    create_links('live_manifest_file_name', directory_path)
+    create_links('live_size_file_name', directory_path)
+    create_links('live_generic_squashfs_file_name', directory_path)
+    create_links('live_generic_manifest_file_name', directory_path)
+    create_links('live_generic_size_file_name', directory_path)
 
 
 # ----------------------------------------------------------------------

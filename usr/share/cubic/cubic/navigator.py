@@ -791,6 +791,14 @@ def get_new_page(action, page):
         elif action == 'next':
             new_page_name = 'extract_page'
             effect = SLIDE_LEFT
+        elif action == 'extract-live':
+            # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+            # TODO: Remove this elif clause in the future. [2026-07-25]
+            #       Extract the live squashfs for existing projects from
+            #       Cubic version 2026.07.106 and earlier.
+            # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+            new_page_name = 'extract_page'
+            effect = SLIDE_LEFT
         elif action == 'next-snaps':
             new_page_name = 'snaps_page'
             effect = SLIDE_LEFT
