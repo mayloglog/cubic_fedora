@@ -43,7 +43,7 @@ from packaging import version
 
 from cubic.choosers import directory_chooser
 from cubic.constants import BOLD_RED, NORMAL
-from cubic.constants import CONFIG_VERSION_2024
+from cubic.constants import CONFIG_VERSION_2026
 from cubic.constants import OK, ERROR, EXCLUDED_FILE_SYSTEM_TYPES, FILE_SYSTEM_TYPES
 from cubic.utilities import configuration
 from cubic.utilities import constructor
@@ -632,8 +632,8 @@ def validate_page():
     # Migrate existing project.
     # ------------------------------------------------------------------
 
-    cubic_version = constructor.get_display_version(model.project.first_version)
-    if version.parse(cubic_version) < version.parse(CONFIG_VERSION_2024):
+    cubic_version = constructor.get_display_version(model.project.cubic_version)
+    if version.parse(cubic_version) < version.parse(CONFIG_VERSION_2026):
 
         # Set the Cubic version.
         model.project.cubic_version = model.application.cubic_version
@@ -702,10 +702,11 @@ def initialize_model():
     # model.project.configuration = None
     model.project.iso_mount_point = constructor.construct_original_iso_mount_point(model.project.directory)
     model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-    model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
-    model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
-    model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
-    model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+    # The following must be set on the Project page or the Extract page.
+    # model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+    # model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+    # model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+    # model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
     model.project.custom_disk_directory = constructor.construct_custom_disk_directory(model.project.directory)
 
     model.original.iso_file_name = None

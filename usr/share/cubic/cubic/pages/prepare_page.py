@@ -625,11 +625,7 @@ def _update_kernel_details_list(kernel_details_list):
     # compression just uses the column's existing value from the dict
     # when creating the new list for the row.
     kernel_details_list.sort(
-        key=lambda details: [(0,
-                              0,
-                              0,
-                              0) if k == 'version_integers' and v is None else '' if v is None else v for k,
-                             v in details.items()],
+        key=lambda details: [(0, 0, 0, 0) if k == 'version_integers' and v is None else '' if v is None else v for k, v in details.items()],
         reverse=True)
 
     # Set the selected index as the index of the most recent kernel.

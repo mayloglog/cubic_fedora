@@ -378,6 +378,12 @@ def enter(action, old_page=None):
 
             if model.layout.squashfs_file_name:
 
+                # Set additional required directories. These directories
+                # will be created on the Snaps page.
+                # The custom root directory was set on the Start page.
+                # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+                model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+
                 # There is only one squashfs file.
                 total_files = 1
 
@@ -390,6 +396,8 @@ def enter(action, old_page=None):
 
                 # Delete the custom root directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_root_directory)
+                # Delete the backup root directory if it exists.
+                file_utilities.delete_path_as_root(model.project.backup_root_directory)
 
                 # ----------------------------------------------------------
                 # 2. General Section
@@ -410,9 +418,19 @@ def enter(action, old_page=None):
                 is_error = extract_linux_file_system(source_file_path, target_file_path, file_number, total_files)
 
                 if is_error: return  # Stay on this page.
+
                 logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
 
             else:
+
+                # Set additional required directories. These directories
+                # will be created on the Snaps page.
+                # The custom root directory was set on the Start page.
+                # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+                model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+                model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+                model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+                model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
 
                 # There are multiple squashfs files.
                 total_files = 3
@@ -427,8 +445,16 @@ def enter(action, old_page=None):
 
                 # Delete the custom root directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_root_directory)
+                # Delete the backup root directory if it exists.
+                file_utilities.delete_path_as_root(model.project.backup_root_directory)
+
                 # Delete the custom live directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_live_directory)
+                # Delete the backup live directory if it exists.
+                file_utilities.delete_path_as_root(model.project.backup_live_directory)
+
+                # Delete the custom temp directory if it exists.
+                file_utilities.delete_path_as_root(model.project.custom_temp_directory)
 
                 # ------------------------------------------------------
                 # 3. Minimal Section
@@ -493,6 +519,11 @@ def enter(action, old_page=None):
                 is_error = merge_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
 
                 if is_error: return  # Stay on this page.
+
+                # Delete the custom temp directory, since it is no
+                # longer needed.
+                file_utilities.delete_path_as_root(model.project.custom_temp_directory)
+
                 # logger.log_value('Done Merging', f'{file_number + 1} of {total_files}: {file_name}')
                 logger.log_value('Done Merging', f'{file_number + 1}: {file_name}')
 
@@ -540,13 +571,23 @@ def enter(action, old_page=None):
     elif action == 'extract-live':
 
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-        # TODO: Remove this elif clause in the future. [2026-07-25]
+        # TODO: Remove this elif clause in the future. [2026-08-19]
         #       Extract the live squashfs for existing projects from
         #       Cubic version 2026.07.106 and earlier.
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-        # There are multiple squashfs files. Only extract the
-        # live squashfs file.
+        # Set additional required directories.
+        # The custom root directory was set on the Start page.
+        # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+        # The following were set on the Project page.
+        # model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+        # model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+        # model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+        # model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
+
+        # There are multiple squashfs files. Only extract the live
+        # squashfs file because the root squashfs files were already
+        # extracted.
         total_files = 1
 
         displayer.update_status('extract_page__unsquashfs', PROCESSING)

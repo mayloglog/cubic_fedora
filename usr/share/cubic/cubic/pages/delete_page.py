@@ -500,9 +500,23 @@ def delete_project_files():
        os.path.exists(model.project.backup_live_directory):
         result_1, exit_status_1, signal_status_1 = file_utilities.delete_path_as_root(model.project.custom_root_directory)
         result_2, exit_status_2, signal_status_2 = file_utilities.delete_path_as_root(model.project.custom_live_directory)
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO: Remove these three lines in the future. [2026-08-19]
+        #       Cleanup projects created using Cubic version 2026.07.107.
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+        if os.path.exists(custom_live_directory):
+            result_2, exit_status_2, signal_status_2 = file_utilities.delete_path_as_root(custom_live_directory)
         result_3, exit_status_3, signal_status_3 = file_utilities.delete_path_as_root(model.project.custom_temp_directory)
         result_4, exit_status_4, signal_status_4 = file_utilities.delete_path_as_root(model.project.backup_root_directory)
         result_5, exit_status_5, signal_status_5 = file_utilities.delete_path_as_root(model.project.backup_live_directory)
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO: Remove these three lines in the future. [2026-08-19]
+        #       Cleanup projects created using Cubic version 2026.07.107.
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+        if os.path.exists(backup_live_directory):
+            result_2, exit_status_2, signal_status_2 = file_utilities.delete_path_as_root(backup_live_directory)
         if not (signal_status_1 and signal_status_2 and signal_status_3 and signal_status_4 and signal_status_5):
             displayer.update_status('delete_page__custom_root_directory', OK)
             displayer.update_label('delete_page__custom_root_directory_message', '', False)

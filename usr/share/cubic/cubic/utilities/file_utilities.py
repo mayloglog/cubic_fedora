@@ -120,7 +120,7 @@ def delete_directory(directory):
 
     logger.log_value('Delete directory', directory)
 
-    if os.path.exists(directory):
+    if directory and os.path.exists(directory):
         try:
             # https://docs.python.org/3.8/library/shutil.html#shutil.rmtree
             # rmtree(path, ignore_errors=False, onerror=HANDLER)
@@ -187,9 +187,18 @@ def delete_path_as_root(file_path):
 
     logger.log_value('Delete file', file_path)
 
-    program = os.path.join(model.application.directory, 'commands', 'delete-path')
-    command = ['pkexec', program, file_path]
-    result, exit_status, signal_status = execute_synchronous(command)
+    if file_path and os.path.exists(file_path):
+        program = os.path.join(model.application.directory, 'commands', 'delete-path')
+        command = ['pkexec', program, file_path]
+        result, exit_status, signal_status = execute_synchronous(command)
+        logger.log_value('The result is', result)
+        logger.log_value('The exit status, signal status is', f'{exit_status}, {signal_status}')
+    else:
+        logger.log_value('Cannot delete file', 'File does not exist')
+        result = f'File {file_path} does not exist.'
+        exit_status = None
+        signal_status = 1
+
     logger.log_value('The result is', result)
     logger.log_value('The exit status, signal status is', f'{exit_status}, {signal_status}')
 
@@ -672,8 +681,16 @@ def read_json_file(file_path):
     logger.log_value('Read json file', file_path)
 
     items = None
-    with open(file_path, 'r', encoding='utf-8') as file:
-        items = json.load(file)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            items = json.load(file)
+    except FileNotFoundError as exception:
+        logger.log_value('Warning. File does not exist', file_path)
+        # logger.log_value('Error. The exception is', exception)
+    except Exception as exception:
+        logger.log_value('Error. The exception is', exception)
+        logger.log_value('The trace back is', traceback.format_exc())
+
     return items
 
 
@@ -719,8 +736,16 @@ def read_yaml_file(file_path):
     logger.log_value('Read yaml file', file_path)
 
     items = None
-    with open(file_path, 'r', encoding='utf-8') as file:
-        items = yaml.safe_load(file)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            items = yaml.safe_load(file)
+    except FileNotFoundError as exception:
+        logger.log_value('Warning. File does not exist', file_path)
+        # logger.log_value('Error. The exception is', exception)
+    except Exception as exception:
+        logger.log_value('Error. The exception is', exception)
+        logger.log_value('The trace back is', traceback.format_exc())
+
     return items
 
 
@@ -1281,7 +1306,7 @@ def delete_file(file_path):
 
     logger.log_value('Delete file', file_path)
 
-    if os.path.exists(file_path):
+    if file_path and os.path.exists(file_path):
         try:
             os.remove(file_path)
             result = f'Successfully deleted {file_path}'

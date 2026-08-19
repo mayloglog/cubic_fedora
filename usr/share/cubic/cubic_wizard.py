@@ -132,7 +132,7 @@ try:
     # Get the running Cubic version.
     model.application.cubic_version = constructor.get_package_version('cubic')
     ### TODO: FOR TESTING ONLY
-    # model.application.cubic_version = '2026.07.106-release~202607201745~ubuntu26.04.1'
+    # model.application.cubic_version = '2026.08.108-release~202608201745~ubuntu26.04'
 
     # Get the running kernel version.
     model.application.kernel_version = constructor.get_kernel_version()

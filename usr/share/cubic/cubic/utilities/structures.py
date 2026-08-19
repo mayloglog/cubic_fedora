@@ -57,7 +57,7 @@ class Fields:
     a new value is set.
 
     The log output has the format:
-    "Set <fields name> <key key>... <value>".
+    "Set <fields name> <key>... <value>".
 
     Logging can optionally be turned off for each assignment operation
     by specifying the value as a tuple containing "value, False".

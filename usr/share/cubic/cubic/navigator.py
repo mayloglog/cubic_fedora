@@ -793,7 +793,7 @@ def get_new_page(action, page):
             effect = SLIDE_LEFT
         elif action == 'extract-live':
             # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-            # TODO: Remove this elif clause in the future. [2026-07-25]
+            # TODO: Remove this elif clause in the future. [2026-08-19]
             #       Extract the live squashfs for existing projects from
             #       Cubic version 2026.07.106 and earlier.
             # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~

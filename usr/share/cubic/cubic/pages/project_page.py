@@ -1972,14 +1972,6 @@ def validate_page():
     currently displayed in the user interface.
     """
 
-    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-    # TODO: Replace this functon in the future. [2026-07-25]
-    #       Replace project_page.validate_page() with
-    #       project_page.validate_page_ORIGINAL().
-    #       Extract the live squashfs for existing projects from
-    #       Cubic version 2026.07.106 and earlier.
-    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-
     is_page_valid = original.is_valid and custom.is_valid
 
     logger.log_value('Is page valid?', is_page_valid)
@@ -2003,29 +1995,55 @@ def validate_page():
        status.is_success_copy and    \
        status.is_success_extract:
 
-        # Handle projects that were created using a Cubic version prior
-        # to version 2026.07.106.
-        file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
-        if os.path.isfile(file_path_1) and os.path.isfile(file_path_2):
-            # Show the Snaps page.
-            # There are multiple squashfs files.
-            # Both the root and live squashfs have been extracted.
-            displayer.reset_buttons(
-                back_button_label='❬Back',
-                back_action='back',
-                back_button_style=None,
-                is_back_sensitive=True,
-                is_back_visible=True,
-                next_button_label='Next❭',
-                next_action='next-snaps',
-                next_button_style='suggested-action',
-                is_next_sensitive=is_page_valid,
-                is_next_visible=True)
-        elif not os.path.isfile(file_path_2):
-            # Show the Extract page.
-            # There are multiple squashfs files.
-            # The live squashfs has not been extracted.
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # TODO: Revisit this logic in the future. [2026-08-19]
+        #       Handle projects that were created using a Cubic version
+        #       prior to version 2026.07.106. Extract the live squashfs
+        #       for existing projects from Cubic version 2026.07.106 and
+        #       earlier.
+        #       • The root environment has already been extracted.
+        #       • The live environment may not have been extracted.
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
+        # Does the Live environment need to be extracted?
+        extract_live_environment = False
+
+        # Check if the Live squashfs file has not been extracted.
+        if model.layout.live_squashfs_file_name:
+            custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+            extract_live_environment = not os.path.isdir(custom_live_directory)
+
+        # Are Snap packages installed?
+        has_snaps = False
+
+        # Do General, Minimal, or Standard environments have snaps?
+        if model.layout.squashfs_file_name or         \
+           model.layout.minimal_squashfs_file_name or \
+           model.layout.standard_squashfs_file_name:
+            custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+            file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+            if has_snaps:
+                # Set additional required directories.
+                # Custom root directory already set on the Start page.
+                # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+                model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+
+        # Does the Live environment have snaps?
+        if model.layout.live_squashfs_file_name:
+            custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+            file_path_1 = os.path.join(custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps = has_snaps or os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+            if has_snaps:
+                # Set additional required directories.
+                model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+                model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+
+        if extract_live_environment:
+            # Show the Extract page if there is a live environment
+            # squashfs file that has not been extracted yet.
             displayer.reset_buttons(
                 back_button_label='❬Back',
                 back_action='back',
@@ -2037,70 +2055,8 @@ def validate_page():
                 next_button_style='suggested-action',
                 is_next_sensitive=is_page_valid,
                 is_next_visible=True)
-        else:
-            # Show the Terminal page.
-            # There is only one squashfs file.
-            displayer.reset_buttons(
-                back_button_label='❬Back',
-                back_action='back',
-                back_button_style=None,
-                is_back_sensitive=True,
-                is_back_visible=True,
-                next_button_label='Customize❭',
-                next_action='next-terminal',
-                next_button_style='suggested-action',
-                is_next_sensitive=is_page_valid,
-                is_next_visible=True)
-    else:
-        # Show the Extract page.
-        displayer.reset_buttons(
-            back_button_label='❬Back',
-            back_action='back',
-            back_button_style=None,
-            is_back_sensitive=True,
-            is_back_visible=True,
-            next_button_label='Next❭',
-            next_action='next',
-            next_button_style='suggested-action',
-            is_next_sensitive=is_page_valid,
-            is_next_visible=True)
-
-
-def validate_page_ORIGINAL():
-    """
-    Show or hide buttons and set the original and custom sections
-    sensitive or insensitive. Validate page relies on the current values
-    of original fields and custom fields, and does not depend on what is
-    currently displayed in the user interface.
-    """
-
-    is_page_valid = original.is_valid and custom.is_valid
-
-    logger.log_value('Is page valid?', is_page_valid)
-
-    # Original section.
-
-    set_sensitive_original_section(original.is_valid)
-
-    # Custom section.
-
-    set_sensitive_custom_section(original.is_valid)
-    validate_custom_iso_undo_button()
-    validate_custom_iso_redo_button()
-    validate_custom_iso_refresh_button()
-
-    # Navigation buttons.
-
-    # Navigation buttons are also set in the setup() function.
-    if status.iso_template and       \
-       status.is_success_analyze and \
-       status.is_success_copy and    \
-       status.is_success_extract:
-
-        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        if os.path.isfile(file_path):
+        elif has_snaps:
             # Show the Snaps page.
-            # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(
                 back_button_label='❬Back',
                 back_action='back',
@@ -2113,8 +2069,8 @@ def validate_page_ORIGINAL():
                 is_next_sensitive=is_page_valid,
                 is_next_visible=True)
         else:
-            # Do not show the Snaps page.
-            # logger.log_value('Show the Snaps page?', 'No')
+            # Show the Terminal page.
+            # There are no snap packages.
             displayer.reset_buttons(
                 back_button_label='❬Back',
                 back_action='back',
@@ -2127,6 +2083,8 @@ def validate_page_ORIGINAL():
                 is_next_sensitive=is_page_valid,
                 is_next_visible=True)
     else:
+
+        # Show the Extract page.
         displayer.reset_buttons(
             back_button_label='❬Back',
             back_action='back',

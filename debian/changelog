@@ -1,4 +1,11 @@
-cubic (2026.07) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+cubic (2026.08) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
+
+  * Issues fixed in version 2026.08.108:
+
+  - Fixed Bug GH:#485, Cubic crashes on the Finish page if "Delete all project
+    files" is selected.
+  - Fixed Bug GH:#487, Stuck on "Analyzing..." on Snaps page when customizing
+    Lubuntu 24.04.4.
 
   * Issues fixed in version 2026.07.107:
 
@@ -756,4 +763,4 @@ cubic (2026.07) stonking resolute questing plucky oracular noble mantic lunar ki
     customized OS.
   - Merged from Experimental branch, revision 19
 
- -- PJ Singh <psingh.cubic@gmail.com>  Sun, 26 Jul 2026 01:33:32 -0400
+ -- PJ Singh <psingh.cubic@gmail.com>  Wed, 19 Aug 2026 19:48:25 -0400

@@ -454,7 +454,23 @@ def delete_project_files():
     logger.log_value('Delete the custom live directory', model.project.custom_live_directory)
     # time.sleep(SLEEP_1000_MS)
     if os.path.exists(model.project.custom_live_directory):
-        result, exit_status, signal_status = file_utilities.delete_path_as_live(model.project.custom_live_directory)
+        result, exit_status, signal_status = file_utilities.delete_path_as_root(model.project.custom_live_directory)
+        if not signal_status:
+            # OK
+            pass
+        else:
+            is_error = True
+    else:
+        # Skip
+        pass
+
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    # TODO: Remove the following in the future. [2026-08-19]
+    #       Cleanup projects created using Cubic version 2026.07.107.
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+    if os.path.exists(custom_live_directory):
+        result, exit_status, signal_status = file_utilities.delete_path_as_root(custom_live_directory)
         if not signal_status:
             # OK
             pass
@@ -501,7 +517,23 @@ def delete_project_files():
     logger.log_value('Delete the backup live directory', model.project.backup_live_directory)
     # time.sleep(SLEEP_1000_MS)
     if os.path.exists(model.project.backup_live_directory):
-        result, exit_status, signal_status = file_utilities.delete_path_as_live(model.project.backup_live_directory)
+        result, exit_status, signal_status = file_utilities.delete_path_as_root(model.project.backup_live_directory)
+        if not signal_status:
+            # OK
+            pass
+        else:
+            is_error = True
+    else:
+        # Skip
+        pass
+
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    # TODO: Remove the following in the future. [2026-08-19]
+    #       Cleanup projects created using Cubic version 2026.07.107.
+    # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+    if os.path.exists(backup_live_directory):
+        result, exit_status, signal_status = file_utilities.delete_path_as_root(backup_live_directory)
         if not signal_status:
             # OK
             pass

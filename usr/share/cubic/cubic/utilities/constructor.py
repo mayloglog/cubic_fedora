@@ -1089,52 +1089,6 @@ def construct_custom_root_directory(project_directory):
     return custom_root_directory
 
 
-def construct_custom_live_directory(project_directory):
-    """
-    Construct the full file path for the custom live directory. This
-    directory is located in the Cubic project directory.
-
-    Arguments:
-    project_directory : str
-        The project directory.
-
-    Returns:
-    custom_live_directory : str
-        The full file path for the custom live directory.
-    """
-
-    # logger.log_label('Construct the custom live directory')
-    # logger.log_value('The project directory is', project_directory)
-
-    custom_live_directory = os.path.join(project_directory, CUSTOM_LIVE_DIRECTORY)
-    # logger.log_value('The constructed custom live directory is', custom_live_directory)
-
-    return custom_live_directory
-
-
-def construct_custom_temp_directory(project_directory):
-    """
-    Construct the full file path for the custom temp directory. This
-    directory is located in the Cubic project directory.
-
-    Arguments:
-    project_directory : str
-        The project directory.
-
-    Returns:
-    custom_temp_directory : str
-        The full file path for the custom temp directory.
-    """
-
-    # logger.log_label('Construct the custom temp directory')
-    # logger.log_value('The project directory is', project_directory)
-
-    custom_temp_directory = os.path.join(project_directory, CUSTOM_TEMP_DIRECTORY)
-    # logger.log_value('The constructed custom temp directory is', custom_temp_directory)
-
-    return custom_temp_directory
-
-
 def construct_backup_root_directory(project_directory):
     """
     Construct the full file path for the backup root directory. This
@@ -1158,6 +1112,29 @@ def construct_backup_root_directory(project_directory):
     return backup_root_directory
 
 
+def construct_custom_live_directory(project_directory):
+    """
+    Construct the full file path for the custom live directory. This
+    directory is located in the Cubic project directory.
+
+    Arguments:
+    project_directory : str
+        The project directory.
+
+    Returns:
+    custom_live_directory : str
+        The full file path for the custom live directory.
+    """
+
+    # logger.log_label('Construct the custom live directory')
+    # logger.log_value('The project directory is', project_directory)
+
+    custom_live_directory = os.path.join(project_directory, CUSTOM_LIVE_DIRECTORY)
+    # logger.log_value('The constructed custom live directory is', custom_live_directory)
+
+    return custom_live_directory
+
+
 def construct_backup_live_directory(project_directory):
     """
     Construct the full file path for the backup live directory. This
@@ -1179,6 +1156,29 @@ def construct_backup_live_directory(project_directory):
     # logger.log_value('The constructed backup live directory is', backup_live_directory)
 
     return backup_live_directory
+
+
+def construct_custom_temp_directory(project_directory):
+    """
+    Construct the full file path for the custom temp directory. This
+    directory is located in the Cubic project directory.
+
+    Arguments:
+    project_directory : str
+        The project directory.
+
+    Returns:
+    custom_temp_directory : str
+        The full file path for the custom temp directory.
+    """
+
+    # logger.log_label('Construct the custom temp directory')
+    # logger.log_value('The project directory is', project_directory)
+
+    custom_temp_directory = os.path.join(project_directory, CUSTOM_TEMP_DIRECTORY)
+    # logger.log_value('The constructed custom temp directory is', custom_temp_directory)
+
+    return custom_temp_directory
 
 
 def construct_custom_disk_directory(project_directory):

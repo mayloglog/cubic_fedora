@@ -721,16 +721,28 @@ def identify_installed_snaps():
     # Enumerate environments that contain snap packages
     #
 
-    # Pair of source and backup directories for the root environment.
-    environment_1_path_pair = PathPair(model.project.custom_root_directory, \
-                                       model.project.backup_root_directory)
-
-    # Pair of source and backup directories for the live environment.
-    environment_2_path_pair = PathPair(model.project.custom_live_directory, \
-                                       model.project.backup_live_directory)
-
     # List of operating system file paths for snap packages.
-    environment_path_pairs = [environment_1_path_pair, environment_2_path_pair]
+    environment_path_pairs = []
+
+    # The following values are set on the indicated pages:
+    # • model.project.custom_root_directory: Start page
+    # • model.project.backup_root_directory: Project page or Extract page
+    # • model.project.custom_live_directory: Project page or Extract page
+    # • model.project.backup_live_directory: Project page or Extract page
+
+    # If the root environment contains snaps, assign a pair of source
+    # and backup directories.
+    if model.project.custom_root_directory and model.project.backup_root_directory:
+        environment_path_pair = PathPair(model.project.custom_root_directory, \
+                                         model.project.backup_root_directory)
+        environment_path_pairs.append(environment_path_pair)
+
+    # If the live environment contains snaps, assign a pair of source
+    # and backup directories.
+    if model.project.custom_live_directory and model.project.backup_live_directory:
+        environment_path_pair = PathPair(model.project.custom_live_directory, \
+                                         model.project.backup_live_directory)
+        environment_path_pairs.append(environment_path_pair)
 
     #
     # Identify snap packages
@@ -869,14 +881,15 @@ def load_snap_configurations():
 
         # Commented out because this file was already created in the
         # identify_installed_snaps() function.
+        '''
         # Create a working snap state file, readable (and writable)
         # by the user.
         # Note, the working *.tmp file is in the source directory.
-        # logger.log_label('Create a temporary snap state file')
-        # source_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'state.json')
-        # backup_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'state.json.tmp')
+        source_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'state.json')
+        backup_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'state.json.tmp')
         # The copy-path command ensures parent directories exist.
-        # copy_file(source_file_path, backup_file_path, user=getpass.getuser())
+        copy_file(source_file_path, backup_file_path, user=getpass.getuser())
+        '''
 
         # Create a list of snap state configurations.
         # Note, the working *.tmp file is in the source directory.
@@ -912,14 +925,15 @@ def load_snap_configurations():
 
         # Commented out because this file was already created in the
         # identify_installed_snaps() function.
+        '''
         # Create a working snap seed file, readable (and writable)
         # by the user, in the source directory.
         # Note, the working *.tmp file is in the source directory.
-        # logger.log_label('Create a temporary snap seed file')
-        # source_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        # backup_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'seed', 'seed.yaml.tmp')
+        source_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+        backup_file_path = os.path.join(environment_path_pair.source_path, 'var', 'lib', 'snapd', 'seed', 'seed.yaml.tmp')
         # The copy-path command ensures parent directories exist.
-        # copy_file(source_file_path, backup_file_path, user=getpass.getuser())
+        copy_file(source_file_path, backup_file_path, user=getpass.getuser())
+        '''
 
         # Create a list of snap seed configurations.
         # Note, the working *.tmp file is in the source directory.
@@ -1404,7 +1418,7 @@ def copy_file(source_file_path, target_file_path, user='root'):
             message = 'Error. Not enough space on the disk.'
         else:
             # message = f'Error. Unable to copy {source_file_path} to {target_file_path}.'
-            message = 'Error. Unable to remove file.'
+            message = 'Error. Unable to copy file.'
         displayer.update_label('snaps_page__overview_message', message, True)
         displayer.update_status('snaps_page__overview', ERROR)
         logger.log_value('Error', f'Unable to copy {source_file_path} to {target_file_path}.')
