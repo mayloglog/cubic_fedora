@@ -128,8 +128,20 @@ def setup(action, old_page=None):
            status.is_success_copy and    \
            status.is_success_extract:
 
-            file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-            if os.path.isfile(file_path):
+            # Determine if the Snaps page or the Terminal page should be
+            # shown.
+            has_snaps_1 = False
+            if model.project.custom_root_directory:
+                file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+            has_snaps_2 = False
+            if model.project.custom_live_directory:
+                file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+
+            if has_snaps_1 or has_snaps_2:
                 displayer.reset_buttons(
                     back_button_label='❬Back',
                     back_action='back',
@@ -195,8 +207,20 @@ def setup(action, old_page=None):
            status.is_success_copy and    \
            status.is_success_extract:
 
-            file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-            if os.path.isfile(file_path):
+            # Determine if the Snaps page or the Terminal page should be
+            # shown.
+            has_snaps_1 = False
+            if model.project.custom_root_directory:
+                file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+            has_snaps_2 = False
+            if model.project.custom_live_directory:
+                file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+
+            if has_snaps_1 or has_snaps_2:
                 displayer.reset_buttons(
                     back_button_label='❬Back',
                     back_action='back',
@@ -2013,30 +2037,29 @@ def validate_page():
             custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
             extract_live_environment = not os.path.isdir(custom_live_directory)
 
-        # Are Snap packages installed?
-        has_snaps = False
-
         # Do General, Minimal, or Standard environments have snaps?
+        has_snaps_1 = False
         if model.layout.squashfs_file_name or         \
            model.layout.minimal_squashfs_file_name or \
            model.layout.standard_squashfs_file_name:
             custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
             file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
             file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-            has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
-            if has_snaps:
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+            if has_snaps_1:
                 # Set additional required directories.
                 # Custom root directory already set on the Start page.
                 # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
                 model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
 
         # Does the Live environment have snaps?
+        has_snaps_2 = False
         if model.layout.live_squashfs_file_name:
             custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
             file_path_1 = os.path.join(custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
             file_path_2 = os.path.join(custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-            has_snaps = has_snaps or os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
-            if has_snaps:
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+            if has_snaps_2:
                 # Set additional required directories.
                 model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
                 model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
@@ -2055,7 +2078,7 @@ def validate_page():
                 next_button_style='suggested-action',
                 is_next_sensitive=is_page_valid,
                 is_next_visible=True)
-        elif has_snaps:
+        elif has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             displayer.reset_buttons(
                 back_button_label='❬Back',

@@ -285,12 +285,20 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-        file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        # Determine if the Snaps page or the Project page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
-        if has_snaps:
+        if has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(
@@ -329,12 +337,20 @@ def setup(action, old_page=None):
 
         # Do not assume the virtual environment is running.
 
-        custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-        file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        # Determine if the Snaps page or the Project page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
-        if has_snaps:
+        if has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(
@@ -373,12 +389,20 @@ def setup(action, old_page=None):
 
         # Do not assume the virtual environment is running.
 
-        custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-        file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        # Determine if the Snaps page or the Project page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
-        if has_snaps:
+        if has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(
@@ -417,12 +441,20 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-        file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        # Determine if the Snaps page or the Project page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
-        if has_snaps:
+        if has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(
@@ -461,12 +493,20 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-        file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        # Determine if the Snaps page or the Project page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
-        if has_snaps:
+        if has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(
@@ -505,12 +545,20 @@ def setup(action, old_page=None):
 
         # The virtual environment will be started in enter().
 
-        custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-        file_path_1 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        file_path_2 = os.path.join(custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
-        has_snaps = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        # Determine if the Snaps page or the Project page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
-        if has_snaps:
+        if has_snaps_1 or has_snaps_2:
             # Show the Snaps page.
             # logger.log_value('Show the Snaps page?', 'Yes')
             displayer.reset_buttons(

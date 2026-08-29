@@ -378,12 +378,6 @@ def enter(action, old_page=None):
 
             if model.layout.squashfs_file_name:
 
-                # Set additional required directories. These directories
-                # will be created on the Snaps page.
-                # The custom root directory was set on the Start page.
-                # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-                model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
-
                 # There is only one squashfs file.
                 total_files = 1
 
@@ -397,7 +391,8 @@ def enter(action, old_page=None):
                 # Delete the custom root directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_root_directory)
                 # Delete the backup root directory if it exists.
-                file_utilities.delete_path_as_root(model.project.backup_root_directory)
+                backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+                file_utilities.delete_path_as_root(backup_root_directory)
 
                 # ----------------------------------------------------------
                 # 2. General Section
@@ -419,24 +414,28 @@ def enter(action, old_page=None):
 
                 if is_error: return  # Stay on this page.
 
+                # If the root directory has snaps, set the backup directory.
+                file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+                if has_snaps_1:
+                    model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+
                 logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
 
             else:
-
-                # Set additional required directories. These directories
-                # will be created on the Snaps page.
-                # The custom root directory was set on the Start page.
-                # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
-                model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
-                model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
-                model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
-                model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
 
                 # There are multiple squashfs files.
                 total_files = 3
                 total_steps = 4
 
                 displayer.update_status('extract_page__unsquashfs', PROCESSING)
+
+                # Set additional required directories.
+                # The custom root directory was set on the Start page.
+                # model.project.custom_root_directory = constructor.construct_custom_root_directory(model.project.directory)
+                model.project.custom_live_directory = constructor.construct_custom_live_directory(model.project.directory)
+                model.project.custom_temp_directory = constructor.construct_custom_temp_directory(model.project.directory)
 
                 # Clear the terminal because the history will no longer be
                 # valid when the new squashfs files are extracted.
@@ -446,12 +445,14 @@ def enter(action, old_page=None):
                 # Delete the custom root directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_root_directory)
                 # Delete the backup root directory if it exists.
-                file_utilities.delete_path_as_root(model.project.backup_root_directory)
+                backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
+                file_utilities.delete_path_as_root(backup_root_directory)
 
                 # Delete the custom live directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_live_directory)
                 # Delete the backup live directory if it exists.
-                file_utilities.delete_path_as_root(model.project.backup_live_directory)
+                backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+                file_utilities.delete_path_as_root(backup_live_directory)
 
                 # Delete the custom temp directory if it exists.
                 file_utilities.delete_path_as_root(model.project.custom_temp_directory)
@@ -478,6 +479,7 @@ def enter(action, old_page=None):
                 is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
 
                 if is_error: return  # Stay on this page.
+
                 logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
 
                 # ------------------------------------------------------
@@ -502,6 +504,7 @@ def enter(action, old_page=None):
                 is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
 
                 if is_error: return  # Stay on this page.
+
                 logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
 
                 # Merge.
@@ -523,6 +526,13 @@ def enter(action, old_page=None):
                 # Delete the custom temp directory, since it is no
                 # longer needed.
                 file_utilities.delete_path_as_root(model.project.custom_temp_directory)
+
+                # If the root directory has snaps, set the backup directory.
+                file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+                if has_snaps_1:
+                    model.project.backup_root_directory = constructor.construct_backup_root_directory(model.project.directory)
 
                 # logger.log_value('Done Merging', f'{file_number + 1} of {total_files}: {file_name}')
                 logger.log_value('Done Merging', f'{file_number + 1}: {file_name}')
@@ -550,7 +560,28 @@ def enter(action, old_page=None):
                 is_error = extract_linux_file_system(source_file_path, target_file_path, step_number, total_steps)
 
                 if is_error: return  # Stay on this page.
+
+                # If the live directory has snaps, set the backup directory.
+                file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+                file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+                has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+                if has_snaps_2:
+                    model.project.backup_live_directory = constructor.construct_backup_live_directory(model.project.directory)
+
                 logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
+
+        # Determine if the Snaps page or the Terminal page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
 
         # Pause to allow the user to see the result.
         message = 'Success.'
@@ -558,10 +589,7 @@ def enter(action, old_page=None):
         displayer.update_status('extract_page__unsquashfs', OK)
         time.sleep(SLEEP_1000_MS)
 
-        # Determine if the Snaps page or the Terminal page should be
-        # shown.
-        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        if os.path.isfile(file_path):
+        if has_snaps_1 or has_snaps_2:
             # Automatically transition to the Snaps page.
             return 'next'
         else:
@@ -628,6 +656,20 @@ def enter(action, old_page=None):
         model.status.is_success_extract = True
 
         if is_error: return  # Stay on this page.
+
+        # Determine if the Snaps page or the Terminal page should be
+        # shown.
+        has_snaps_1 = False
+        if model.project.custom_root_directory:
+            file_path_1 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_1 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+        has_snaps_2 = False
+        if model.project.custom_live_directory:
+            file_path_1 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'state.json')
+            file_path_2 = os.path.join(model.project.custom_live_directory, 'var', 'lib', 'snapd', 'seed', 'seed.yaml')
+            has_snaps_2 = os.path.isfile(file_path_1) or os.path.isfile(file_path_2)
+
         logger.log_value('Done extracting', f'{file_number + 1} of {total_files}: {file_name}')
 
         # Pause to allow the user to see the result.
@@ -636,10 +678,7 @@ def enter(action, old_page=None):
         displayer.update_status('extract_page__unsquashfs', OK)
         time.sleep(SLEEP_1000_MS)
 
-        # Determine if the Snaps page or the Terminal page should be
-        # shown.
-        file_path = os.path.join(model.project.custom_root_directory, 'var', 'lib', 'snapd', 'state.json')
-        if os.path.isfile(file_path):
+        if has_snaps_1 or has_snaps_2:
             # Automatically transition to the Snaps page.
             return 'next'
         else:
