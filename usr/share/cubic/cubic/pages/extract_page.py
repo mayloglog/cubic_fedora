@@ -47,6 +47,7 @@ from packaging import version
 import glob
 import locale
 import os
+import re
 import time
 
 from cubic.constants import BOLD_RED, NORMAL
@@ -1364,7 +1365,7 @@ def copy_original_iso_files():
         track_progress(command, progress_callback)
     except InterruptException as exception:
         model.status.is_success_copy = False
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1376,7 +1377,7 @@ def copy_original_iso_files():
         raise exception
     except Exception as exception:
         model.status.is_success_copy = False
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1420,7 +1421,7 @@ def extract_linux_file_system(source_file_path, target_file_path, file_number, t
         track_progress(command, progress_callback)
     except InterruptException as exception:
         model.status.is_success_extract = False
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1432,7 +1433,7 @@ def extract_linux_file_system(source_file_path, target_file_path, file_number, t
         raise exception
     except Exception as exception:
         model.status.is_success_extract = False
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1470,7 +1471,7 @@ def merge_linux_file_system(source_file_path, target_file_path, file_number, tot
         track_progress(command, progress_callback)
     except InterruptException as exception:
         model.status.is_success_extract = False
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1482,7 +1483,7 @@ def merge_linux_file_system(source_file_path, target_file_path, file_number, tot
         raise exception
     except Exception as exception:
         model.status.is_success_extract = False
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:

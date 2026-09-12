@@ -650,7 +650,7 @@ def create_squashfs(source_file_path, target_file_path, file_number, total_files
     try:
         track_progress(command, progress_callback)
     except InterruptException as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -661,7 +661,7 @@ def create_squashfs(source_file_path, target_file_path, file_number, total_files
         logger.log_value('Propagate exception', exception)
         raise exception
     except Exception as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -745,7 +745,7 @@ def create_squashfs_01(source_file_path, target_file_path, file_number, total_fi
     try:
         track_progress(command, progress_callback)
     except InterruptException as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -756,7 +756,7 @@ def create_squashfs_01(source_file_path, target_file_path, file_number, total_fi
         logger.log_value('Propagate exception', exception)
         raise exception
     except Exception as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -814,7 +814,7 @@ def create_squashfs_ORIGINAL():
     try:
         track_progress(command, progress_callback)
     except InterruptException as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -825,7 +825,7 @@ def create_squashfs_ORIGINAL():
         logger.log_value('Propagate exception', exception)
         raise exception
     except Exception as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1618,7 +1618,7 @@ def update_checksums():
     except InterruptException as exception:
         logger.log_value('Error', 'Unable to update checksums')
         logger.log_value('The exception is', exception)
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             message = 'Error. Not enough space on the disk.'
         else:
             message = 'Error. Unable to calculate checksums.'
@@ -1629,7 +1629,7 @@ def update_checksums():
     except Exception as exception:
         logger.log_value('Error', 'Unable to update checksums')
         logger.log_value('The exception is', exception)
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             message = 'Error. Not enough space on the disk.'
         else:
             message = 'Error. Unable to calculate checksums.'

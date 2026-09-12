@@ -40,6 +40,7 @@
 import getpass
 import json
 import os
+import re
 import sys
 import time
 
@@ -1400,7 +1401,7 @@ def copy_file(source_file_path, target_file_path, user='root'):
         command = ['pkexec', program, source_file_path, target_file_path, user]
         result, exit_status, signal_status = execute_synchronous(command)
     except InterruptException as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1413,7 +1414,7 @@ def copy_file(source_file_path, target_file_path, user='root'):
         raise exception
     except Exception as exception:
         logger.log_value('Error', f'Unable to copy {source_file_path} to {target_file_path}.')
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1462,7 +1463,7 @@ def move_file(source_file_path, target_file_path, user=''):
         command = ['pkexec', program, source_file_path, target_file_path, user]
         result, exit_status, signal_status = execute_synchronous(command)
     except InterruptException as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1475,7 +1476,7 @@ def move_file(source_file_path, target_file_path, user=''):
         raise exception
     except Exception as exception:
         logger.log_value('Error', f'Unable to move {source_file_path} to {target_file_path}.')
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1547,7 +1548,7 @@ def move_file_progress(source_file_path, target_file_path, user='root'):
         # file was previously moved.
         # displayer.update_list_store_progress_bar_percent('snaps_page__snap_details__list_store', snap_number, 1, FINAL_PERCENT)
     except InterruptException as exception:
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:
@@ -1560,7 +1561,7 @@ def move_file_progress(source_file_path, target_file_path, user='root'):
         raise exception
     except Exception as exception:
         logger.log_value('Error', f'Unable to move {source_file_path} to {target_file_path}.')
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
             message = 'Error. Not enough space on the disk.'
         else:

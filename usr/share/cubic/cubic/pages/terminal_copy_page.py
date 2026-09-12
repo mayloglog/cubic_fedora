@@ -38,6 +38,7 @@
 ########################################################################
 
 import os
+import re
 import time
 import urllib.parse
 
@@ -309,7 +310,7 @@ def copy_files(current_directory, uris):
             copy_file(file_path, file_number, target_directory, total_files)
     except InterruptException as exception:
         displayer.update_status('terminal_copy_page__progress', ERROR)
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = f'<span foreground="red">Error. Unable to copy files to {current_directory}. Not enough space on the disk.</span>'
             message = f'Error. Unable to copy files to {current_directory}. Not enough space on the disk.'
         else:
@@ -320,7 +321,7 @@ def copy_files(current_directory, uris):
         raise exception
     except Exception as exception:
         displayer.update_status('terminal_copy_page__progress', ERROR)
-        if 'No space left on device' in str(exception):
+        if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = f'<span foreground="red">Error. Unable to copy files to {current_directory}. Not enough space on the disk.</span>'
             message = f'Error. Unable to copy files to {current_directory}. Not enough space on the disk.'
         else:
