@@ -1,0 +1,72 @@
+.\" Manual page for cubic-fedora.
+.\" Copyright (C) 2015, 2020, 2024 PJ Singh <psingh.cubic@gmail.com>
+
+.TH CUBIC-FEDORA 1 "September 1, 2024" "" "Cubic Fedora"
+
+.SH NAME
+\fBcubic-fedora\fR - Custom Ubuntu and Feidora ISO Creator (Cubic Fedora Edition)
+
+.SH SYNOPSIS
+\fBcubic-fedora\fR [-h] [-l] [-v] [-V] [directory] [iso]
+
+.SH DESCRIPTION
+Cubic Fedora (Cubic_fedora, the Feidora edition of the Custom Ubuntu ISO
+Creator) is a GUI wizard to create a customized Live ISO image for Ubuntu,
+Debian, and Fedora based distributions. It is packaged as "cubic-fedora" so
+that it can be installed side by side with the original "cubic" package.
+.PP
+Cubic Fedora permits effortless navigation through the ISO customization steps
+and features an integrated virtual command line environment to customize the
+Linux file system. You can create new customization projects or modify
+existing projects. Important parameters are dynamically populated with
+intelligent defaults to simplify the customization process.
+.PP
+See <https://github.com/PJ-Singh-001/Cubic/wiki> for more information.
+
+.SH POSITIONAL ARGUMENTS
+
+\fBdirectory\fR
+.RS
+directory for a new or existing project
+.RE
+
+\fBiso\fR
+.RS
+original ISO file for a new project (ignored for existing projects)
+.RE
+
+.SH OPTIONS
+
+\fB-h, --help\fR
+.RS
+show the help message and exit
+.RE
+
+\fB-l, --log\fR
+.RS
+output a formatted log to a file in the project directory
+.RE
+
+\fB-v, --verbose\fR
+.RS
+output a formatted log to the console
+.RE
+
+\fB-V, --version\fR
+.RS
+print version information and exit
+.RE
+
+.SH NOTES
+Cubic is a graphical user interface application and should be started using the
+application launcher.
+.PP
+To run Cubic from the command line, use the \fBcubic\fR command; this executable
+is located in the /usr/bin directory and should be available in your path. Do
+not run cubic using sudo or as root.
+
+.SH BUGS
+Report bugs to <https://github.com/PJ-Singh-001/Cubic/issues>.
+
+.SH AUTHOR
+PJ Singh <psingh.cubic@gmail.com>

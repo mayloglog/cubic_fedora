@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Cubic Fedora
+Comment=Custom Ubuntu and Feidora ISO Creator
+Path=/usr/share/cubic-fedora
+Exec=/usr/bin/cubic-fedora
+Terminal=false
+Type=Application
+Icon=cubic-fedora
+StartupNotify=true
+Categories=Utility;Application;System;
+StartupWMClass=cubic_wizard.py

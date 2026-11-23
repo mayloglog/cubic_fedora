@@ -14,7 +14,7 @@ Files: usr/share/bash-completion/cubic
 Copyright: 2022 PJ Singh
 License: /usr/share/common-licenses/Apache-2.0
 
-Files: usr/share/cubic/*
+Files: usr/share/cubic-fedora/*
 Copyright: 2015, 2020 PJ Singh
 License: /usr/share/common-licenses/GPL-3
 

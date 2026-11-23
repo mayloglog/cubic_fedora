@@ -1,0 +1,42 @@
+#!/bin/bash
+
+########################################################################
+# unmount-iso                                                          #
+#                                                                      #
+# Unmount an ISO for Cubic.                                            #
+#                                                                      #
+# For Fedora family projects (Fedora, Feidora, etc.), the custom root  #
+# directory is a mounted ext4 root file system image (see extract-     #
+# root). The ISO mount point is located directly inside the project    #
+# directory, so if mount information exists next to it, also unmount   #
+# the custom root image and remove the mount information file.         #
+########################################################################
+
+########################################################################
+# Arguments
+########################################################################
+
+program=${0}
+number_arguments=${#}
+iso_image_mount_point=${1}
+
+########################################################################
+# Command
+########################################################################
+
+umount "${iso_image_mount_point}"
+exit_code=$?
+
+# Fedora family cleanup.
+mount_info_file="$(dirname "${iso_image_mount_point}")/.cubic_fedora_mounts"
+if [ -f "${mount_info_file}" ]; then
+    # shellcheck disable=SC1090
+    source "${mount_info_file}" 2>/dev/null
+    if [ -n "${CUBIC_CUSTOM_ROOT}" ] && mountpoint -q "${CUBIC_CUSTOM_ROOT}" 2>/dev/null; then
+        sync
+        umount "${CUBIC_CUSTOM_ROOT}" 2>/dev/null
+    fi
+    rm -f "${mount_info_file}" 2>/dev/null
+fi
+
+exit $exit_code

@@ -1,0 +1,112 @@
+#!/bin/bash
+
+########################################################################
+# compress-root                                                        #
+#                                                                      #
+# Compress the root file system for Cubic.                             #
+#                                                                      #
+# Supports two ISO layouts:                                            #
+#                                                                      #
+# • Debian family (Ubuntu, Debian, etc.):                              #
+#   The custom root directory directly contains the root file system.  #
+#   It is compressed into the target squashfs image using mksquashfs,  #
+#   excluding volatile paths.                                          #
+#                                                                      #
+# • Fedora family (Fedora, Feidora, etc.):                             #
+#   The custom root directory is a mounted ext4 root file system       #
+#   image (see extract-root). Unmount the image, repack the LiveOS     #
+#   staging directory (which contains the updated image) into the      #
+#   target squashfs image, and finally re-mount the image, so that the #
+#   virtual environment remains usable when navigating back to the     #
+#   Terminal page.                                                     #
+########################################################################
+
+########################################################################
+# Arguments
+########################################################################
+
+program=${0}
+number_arguments=${#}
+source_file_path=${1}
+target_file_path=${2}
+compression=${3}
+
+root_dir="${source_file_path}"
+squashfs_target="${target_file_path}"
+project_directory="$(dirname "${root_dir}")"
+mount_info_file="${project_directory}/.cubic_fedora_mounts"
+
+########################################################################
+# Command
+########################################################################
+
+if [ ! -f "${mount_info_file}" ]; then
+
+    # ------------------------------------------------------------------
+    # Debian family
+    # ------------------------------------------------------------------
+
+    # unshare --fork --pid --kill-child -- \
+    mksquashfs "${root_dir}" "${squashfs_target}" \
+     -noappend                 \
+     -comp ${compression}      \
+     -wildcards                \
+     -e "proc/*"               \
+     -e "proc/.*"              \
+     -e "run/*"                \
+     -e "run/.*"               \
+     -e "tmp/*"                \
+     -e "tmp/.*"               \
+     -e "var/crash/*"          \
+     -e "var/crash/.*"         \
+     -e "swapfile"             \
+     -e "root/.bash_history"   \
+     -e "root/.cache"          \
+     -e "root/.wget-hsts"      \
+     -e "home/*/.bash_history" \
+     -e "home/*/.cache"        \
+     -e "home/*/.wget-hsts"
+    exit $?
+
+fi
+
+# ----------------------------------------------------------------------
+# Fedora family
+# ----------------------------------------------------------------------
+
+# shellcheck disable=SC1090
+source "${mount_info_file}"
+# Provides:
+# • CUBIC_CUSTOM_ROOT     - the custom root directory (mount point)
+# • CUBIC_ROOT_IMAGE      - the ext4 root file system image file
+# • CUBIC_ROOT_IMAGE_NAME - the image file name (ext3fs.img/rootfs.img)
+# • CUBIC_LIVEOS_STAGING  - the extracted LiveOS staging directory
+
+# 1. Unmount the custom root directory.
+sync
+umount "${CUBIC_CUSTOM_ROOT}" || {
+    echo "Error: Failed to unmount ${CUBIC_CUSTOM_ROOT}" >&2
+    exit 1
+}
+
+# 2. Repack the LiveOS staging directory into the target squashfs
+#    image. The staging directory contains the updated root file system
+#    image (and any sibling files from the original squashfs image).
+mkdir -p "$(dirname "${squashfs_target}")"
+mksquashfs "${CUBIC_LIVEOS_STAGING}" "${squashfs_target}" \
+    -noappend \
+    -comp "${compression}" || {
+    echo "Error: Failed to create ${squashfs_target}" >&2
+    exit 1
+}
+
+# 3. Re-mount the root file system image, so that the virtual
+#    environment can still be entered when navigating back to the
+#    Terminal page. The mount information file is retained, because the
+#    image is still mounted.
+mount -o loop,rw "${CUBIC_ROOT_IMAGE}" "${CUBIC_CUSTOM_ROOT}" || {
+    echo "Error: Failed to re-mount ${CUBIC_ROOT_IMAGE}" >&2
+    exit 1
+}
+
+exit 0

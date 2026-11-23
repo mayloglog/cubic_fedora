@@ -1,3 +1,26 @@
+cubic-fedora (2026.12.1-feidora1) noble; urgency=low
+
+  * Feidora edition fork, packaged as "cubic-fedora" so that it can be
+    installed side by side with the original "cubic" package.
+  * Added support for Feidora (Fedora family) distribution ISOs:
+    - New distribution family detection, and a nested LiveOS root file
+      system layout (the ext4 root image inside LiveOS/squashfs.img is
+      mounted read/write at the custom root directory).
+    - New extract-root, compress-root, unmount-root, and unmount-iso
+      logic that automatically supports both Debian family and Fedora
+      family ISO layouts.
+    - Package manifests use the rpm database for Fedora family ISOs;
+      the Packages page writes Kickstart exclude snippets.
+    - Boot configurations recognize images/pxeboot, EFI/boot, and
+      Fedora family kernel file names (vmlinuz0, initrd0.img).
+    - The .discinfo file is used to identify the release name.
+  * All installation paths, the polkit policy, the desktop entry, the
+    man page, the bash completion, and the icons were renamed from
+    "cubic" to "cubic-fedora".
+  * Based on upstream Cubic 2026.09.
+
+ -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 16:00:00 +0000
+
 cubic (2026.09) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
 
   * Issues fixed in version 2026.09.110:

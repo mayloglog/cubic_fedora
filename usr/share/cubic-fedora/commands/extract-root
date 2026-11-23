@@ -1,0 +1,156 @@
+#!/bin/bash
+
+########################################################################
+# extract-root                                                         #
+#                                                                      #
+# Extract the root file system for Cubic.                              #
+#                                                                      #
+# Supports two ISO layouts:                                            #
+#                                                                      #
+# • Debian family (Ubuntu, Debian, etc.):                              #
+#   The source file is a squashfs image that directly contains the     #
+#   root file system. It is extracted using unsquashfs.                #
+#                                                                      #
+#       <ISO>/<squashfs directory>/filesystem.squashfs                 #
+#           └── the root file system                                   #
+#                                                                      #
+# • Fedora family (Fedora, Feidora, etc.):                             #
+#   The source file is a squashfs image that contains an ext4 root     #
+#   file system image (LiveOS/ext3fs.img or LiveOS/rootfs.img). The    #
+#   squashfs image is extracted into the custom temp directory, and    #
+#   the inner root file system image is mounted (read/write) at the    #
+#   custom root directory, so that changes made in the virtual         #
+#   environment are persisted to the image file. The extracted         #
+#   LiveOS directory is retained as a staging area for repacking the   #
+#   squashfs image on the Generate page.                               #
+#                                                                      #
+#       <ISO>/LiveOS/squashfs.img                                      #
+#           └── LiveOS/ext3fs.img (or LiveOS/rootfs.img)               #
+#                 └── the root file system                             #
+#                                                                      #
+#   Mount information is saved in "<project>/.cubic_fedora_mounts" so  #
+#   that compress-root, unmount-root, and unmount-iso can unmount the  #
+#   image and repack the squashfs image.                               #
+########################################################################
+
+########################################################################
+# Arguments
+########################################################################
+
+program=${0}
+number_arguments=${#}
+source_file_path=${1}
+target_file_path=${2}
+
+squashfs_file="${source_file_path}"
+target_dir="${target_file_path}"
+project_directory="$(dirname "${target_dir}")"
+custom_temp_directory="${project_directory}/custom-temp"
+mount_info_file="${project_directory}/.cubic_fedora_mounts"
+
+########################################################################
+# Functions
+########################################################################
+
+cleanup_previous_mount() {
+    # Unmount the custom root and remove the mount information left over
+    # from a previous extraction (Fedora family only).
+    if [ -f "${mount_info_file}" ]; then
+        # shellcheck disable=SC1090
+        source "${mount_info_file}" 2>/dev/null
+        if [ -n "${CUBIC_CUSTOM_ROOT}" ] && mountpoint -q "${CUBIC_CUSTOM_ROOT}" 2>/dev/null; then
+            sync
+            umount "${CUBIC_CUSTOM_ROOT}" 2>/dev/null
+        fi
+        rm -f "${mount_info_file}" 2>/dev/null
+    fi
+    # If the target directory is still a mount point, unmount it.
+    if mountpoint -q "${target_dir}" 2>/dev/null; then
+        sync
+        umount "${target_dir}" 2>/dev/null
+    fi
+}
+
+########################################################################
+# Command
+########################################################################
+
+# Clean up any previous Fedora family mount for this target.
+cleanup_previous_mount
+
+# Determine whether the squashfs image contains an embedded root file
+# system image (Fedora family), or the root file system itself (Debian
+# family).
+inner_image_path=""
+for candidate in "LiveOS/ext3fs.img" "LiveOS/rootfs.img" "ext3fs.img" "rootfs.img"; do
+    if unsquashfs -l "${squashfs_file}" 2>/dev/null | grep -q "${candidate}"; then
+        inner_image_path="${candidate}"
+        break
+    fi
+done
+
+if [ -z "${inner_image_path}" ]; then
+
+    # ------------------------------------------------------------------
+    # Debian family
+    # ------------------------------------------------------------------
+
+    unsquashfs -force -dest "${target_dir}" "${squashfs_file}"
+    exit $?
+
+fi
+
+# ----------------------------------------------------------------------
+# Fedora family
+# ----------------------------------------------------------------------
+
+# 1. Extract the squashfs image into the custom temp directory. The
+#    extracted LiveOS directory is the staging area that will be used
+#    to repack the squashfs image on the Generate page.
+if [ -d "${custom_temp_directory}" ]; then
+    rm -rf "${custom_temp_directory:?}" || {
+        echo "Error: Failed to clear the staging directory ${custom_temp_directory}" >&2
+        exit 1
+    }
+fi
+mkdir -p "${custom_temp_directory}"
+unsquashfs -force -dest "${custom_temp_directory}" "${squashfs_file}" || {
+    echo "Error: Failed to extract ${squashfs_file}" >&2
+    exit 1
+}
+
+# 2. Mount the inner root file system image (read/write) at the custom
+#    root directory. The image file resides in the custom temp
+#    directory (which is writable), so all modifications made in the
+#    virtual environment are persisted to the image file.
+root_image="${custom_temp_directory}/${inner_image_path}"
+if [ ! -f "${root_image}" ]; then
+    echo "Error: Root file system image not found: ${root_image}" >&2
+    exit 1
+fi
+
+# Verify that the root file system image is an ext file system image,
+# so that it can be mounted (read/write).
+root_image_type=$(blkid -o value -s TYPE "${root_image}" 2>/dev/null)
+if [ "${root_image_type}" != "ext2" ] && [ "${root_image_type}" != "ext3" ] && [ "${root_image_type}" != "ext4" ]; then
+    echo "Error: Unsupported root file system image type (${root_image_type:-unknown}): ${root_image}" >&2
+    exit 1
+fi
+
+mkdir -p "${target_dir}"
+mount -o loop,rw "${root_image}" "${target_dir}" || {
+    echo "Error: Failed to mount ${root_image}" >&2
+    exit 1
+}
+
+# 3. Save the mount information for compress-root, unmount-root, and
+#    unmount-iso.
+cat > "${mount_info_file}" <<EOF
+CUBIC_CUSTOM_ROOT="${target_dir}"
+CUBIC_ROOT_IMAGE="${root_image}"
+CUBIC_ROOT_IMAGE_NAME="$(basename "${root_image}")"
+CUBIC_LIVEOS_STAGING="${custom_temp_directory}"
+CUBIC_SQUASHFS_SOURCE="${squashfs_file}"
+EOF
+
+exit 0

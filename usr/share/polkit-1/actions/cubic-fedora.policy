@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN" "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <action id="cubic-fedora.compress-root">
+    <description>Compress the root file system for Cubic Fedora.</description>
+    <message>Enter the administrator password to compress the root file system for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/compress-root</annotate>
+  </action>
+  <action id="cubic-fedora.copy-path">
+    <description>Copy a file or directory for Cubic Fedora.</description>
+    <message>Enter the administrator password to copy a file or directory for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/copy-path</annotate>
+  </action>
+  <action id="cubic-fedora.current-directory">
+    <description>Get the virtual environment current directory for Cubic Fedora.</description>
+    <message>Enter the administrator password to get the virtual environment current directory for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/current-directory</annotate>
+  </action>
+  <action id="cubic-fedora.delete">
+    <description>Delete a file or directory for Cubic Fedora.</description>
+    <message>Enter the administrator password to delete a file or directory for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/delete-path</annotate>
+  </action>
+  <action id="cubic-fedora.directory-usage">
+    <description>Get directory usage (used, available, and used %) in bytes for Cubic Fedora.</description>
+    <message>Enter the administrator password to get directory usage (used, available, and used %) in bytes for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/directory-usage</annotate>
+  </action>
+  <action id="cubic-fedora.extract-root">
+    <description>Extract the root file system for Cubic Fedora.</description>
+    <message>Enter the administrator password to extract the root file system for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/extract-root</annotate>
+  </action>
+  <action id="cubic-fedora.file-size">
+    <description>Get the size of a file or directory in bytes for Cubic Fedora.</description>
+    <message>Enter the administrator password to get the size of a file or directory in bytes for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/file-size</annotate>
+  </action>
+  <action id="cubic-fedora.merge-directory">
+    <description>Merge a source directory into a target directory for Cubic Fedora.</description>
+    <message>Enter the administrator password to merge a source directory into a target directory for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/merge-directory</annotate>
+  </action>
+  <action id="cubic-fedora.mount-iso">
+    <description>Mount an ISO for Cubic Fedora.</description>
+    <message>Enter the administrator password to mount an ISO for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/mount-iso</annotate>
+  </action>
+  <action id="cubic-fedora.move-path">
+    <description>Move a file or directory for Cubic Fedora.</description>
+    <message>Enter the administrator password to move a file or directory for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/move-path</annotate>
+  </action>
+  <action id="cubic-fedora.replace-text">
+    <description>Replace text in a file for Cubic Fedora.</description>
+    <message>Enter the administrator password to replace text in a file for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/replace-text</annotate>
+  </action>
+  <action id="cubic-fedora.start-console">
+    <description>Start the virtual environment for Cubic Fedora.</description>
+    <message>Enter the administrator password to start the virtual environment for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/start-console</annotate>
+  </action>
+  <action id="cubic-fedora.stop-console">
+    <description>Stop the virtual environment for Cubic Fedora.</description>
+    <message>Enter the administrator password to stop the virtual environment for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/stop-console</annotate>
+  </action>
+  <action id="cubic-fedora.stop-process">
+    <description>Terminate a process for Cubic Fedora.</description>
+    <message>Enter the administrator password to terminate a process for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/stop-process</annotate>
+  </action>
+  <action id="cubic-fedora.test-command">
+    <description>Run the test command for Cubic Fedora.</description>
+    <message>Enter the administrator password to run the test command for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/test-command</annotate>
+  </action>
+  <action id="cubic-fedora.unmount-iso">
+    <description>Unmount an ISO for Cubic Fedora.</description>
+    <message>Enter the administrator password to unmount an ISO for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/unmount-iso</annotate>
+  </action>
+</policyconfig>

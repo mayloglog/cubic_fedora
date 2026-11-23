@@ -1,0 +1,77 @@
+#!/bin/bash
+
+########################################################################
+# start-console (Fedora edition)
+########################################################################
+
+########################################################################
+# References
+########################################################################
+
+# http://manpages.ubuntu.com/manpages/focal/man1/systemd-nspawn.1.html
+# https://www.freedesktop.org/software/systemd/man/systemd-nspawn.html#--resolv-conf=
+
+########################################################################
+# Constants
+########################################################################
+
+bind_path="/etc/resolv.conf"
+
+########################################################################
+# Arguments
+########################################################################
+
+program=${0}
+number_arguments=${#}
+machine_name=${1}
+directory=${2}
+
+########################################################################
+# Fedora: SELinux permissive handling
+########################################################################
+# Fedora 默认 SELinux=enforcing，在 nspawn 容器内执行 dnf 或修改
+# 文件系统可能被策略拦截。在启动容器前将宿主机 SELinux 置为
+# permissive，退出后恢复原状态。
+# 若宿主机本身未启用 SELinux（如非 Fedora 宿主），则跳过此步骤。
+
+original_selinux_mode=""
+if command -v getenforce >/dev/null 2>&1; then
+    original_selinux_mode=$(getenforce 2>/dev/null)
+    if [ "${original_selinux_mode}" = "Enforcing" ]; then
+        setenforce 0 2>/dev/null || true
+        logger_note="SELinux temporarily set to Permissive for Cubic chroot."
+        echo "${logger_note}" >&2
+    fi
+fi
+
+restore_selinux() {
+    if [ -n "${original_selinux_mode}" ] && [ "${original_selinux_mode}" = "Enforcing" ]; then
+        setenforce 1 2>/dev/null || true
+    fi
+}
+trap restore_selinux EXIT
+
+########################################################################
+# Command
+########################################################################
+
+if [[ -e ${bind_path} ]]; then
+    systemd-nspawn              \
+    --quiet                     \
+    --notify-ready=yes          \
+    --register=yes              \
+    --bind-ro="${bind_path}"    \
+    --machine="${machine_name}" \
+    --directory="${directory}"
+else
+    systemd-nspawn              \
+    --quiet                     \
+    --notify-ready=yes          \
+    --register=yes              \
+    --machine="${machine_name}" \
+    --directory="${directory}"
+fi
+exit_code=$?
+
+# trap 会在退出时自动恢复 SELinux 状态
+exit $exit_code

@@ -1,0 +1,51 @@
+#!/bin/bash
+
+########################################################################
+# unmount-root                                                         #
+#                                                                      #
+# Unmount the custom root file system image for a Fedora family        #
+# project (Fedora, Feidora, etc.), before the custom root or the        #
+# custom temp directories are deleted (see extract-root).              #
+#                                                                      #
+# For Debian family projects, there is nothing to unmount, and this    #
+# command exits successfully.                                          #
+########################################################################
+
+########################################################################
+# Arguments
+########################################################################
+
+program=${0}
+number_arguments=${#}
+project_directory=${1}
+
+mount_info_file="${project_directory}/.cubic_fedora_mounts"
+
+########################################################################
+# Command
+########################################################################
+
+if [ ! -f "${mount_info_file}" ]; then
+    # Nothing to unmount (Debian family project, or already unmounted).
+    exit 0
+fi
+
+# shellcheck disable=SC1090
+source "${mount_info_file}"
+# Provides:
+# • CUBIC_CUSTOM_ROOT     - the custom root directory (mount point)
+# • CUBIC_ROOT_IMAGE      - the ext4 root file system image file
+# • CUBIC_ROOT_IMAGE_NAME - the image file name (ext3fs.img/rootfs.img)
+# • CUBIC_LIVEOS_STAGING  - the extracted LiveOS staging directory
+
+if [ -n "${CUBIC_CUSTOM_ROOT}" ] && mountpoint -q "${CUBIC_CUSTOM_ROOT}" 2>/dev/null; then
+    sync
+    umount "${CUBIC_CUSTOM_ROOT}" || {
+        echo "Error: Failed to unmount ${CUBIC_CUSTOM_ROOT}" >&2
+        exit 1
+    }
+fi
+
+rm -f "${mount_info_file}" 2>/dev/null
+
+exit 0
