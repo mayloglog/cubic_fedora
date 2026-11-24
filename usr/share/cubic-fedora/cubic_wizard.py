@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#! /usr/bin/python3
 
 ########################################################################
 #                                                                      #
@@ -54,6 +54,7 @@ from cubic.constants import CUBIC_COPYRIGHT
 from cubic.constants import CUBIC_WEBSITE, CUBIC_URLS
 from cubic import navigator
 from cubic.utilities import constructor
+from cubic.utilities import i18n
 from cubic.utilities import logger
 from cubic.utilities import model
 
@@ -87,11 +88,11 @@ argcomplete.autocomplete(parser)
 arguments = parser.parse_args()
 
 if arguments.version:
-    version = constructor.get_package_version('cubic')
+    version = constructor.get_package_version('cubic-fedora')
     display_version = constructor.get_display_version(version)
     urls = constructor.decode_object(CUBIC_URLS)
     website = urls[CUBIC_WEBSITE]
-    print(f'Cubic version... {display_version}')
+    print(f'Cubic-Fedora version... {display_version}')
     print(f'Copyright....... {CUBIC_COPYRIGHT}')
     print(f'Website......... {website}')
     exit()
@@ -111,9 +112,9 @@ try:
     logger.verbose = arguments.verbose
     logger.log = arguments.log
 
-    logger.log_title('Cubic - Custom Ubuntu ISO Creator')
+    logger.log_title('Cubic-Fedora - Custom Fedora and Feidora ISO Creator')
 
-    logger.log_value('Cubic version', display_version)
+    logger.log_value('Cubic-Fedora version', display_version)
     logger.log_value('Copyright', CUBIC_COPYRIGHT)
     logger.log_value('Website', website)
 
@@ -126,8 +127,31 @@ try:
     # Real path is necessary here.
     model.application.directory = os.path.dirname(os.path.realpath(__file__))
 
+    # Load the plain text translations for the current language (before
+    # the user interface is created).
+    i18n.initialize(model.application.directory)
+
     # Get the user's home directory.
     model.application.user_home = os.path.expanduser('~')
+
+    # Change the current working directory to the user's home
+    # directory. All subprocesses (rsync, unsquashfs, mksquashfs, etc.)
+    # inherit this directory. If the application is launched from a
+    # directory that is deleted or unmounted during the run (for
+    # example, a directory inside the custom root file system image,
+    # which is unmounted at the start of the Extract step), then
+    # subprocesses that call getcwd() (such as rsync) would fail with
+    # "getcwd(): No such file or directory". The application always
+    # uses absolute paths internally, so changing the working directory
+    # here has no other effect.
+    try:
+        original_working_directory = os.getcwd()
+        os.chdir(model.application.user_home)
+        logger.log_value('The original working directory was', original_working_directory)
+        logger.log_value('The working directory was changed to', model.application.user_home)
+    except OSError as exception:
+        logger.log_value('Warning. Unable to change the working directory to', model.application.user_home)
+        logger.log_value('The exception is', exception)
 
     # Get the running Cubic Fedora version.
     # The package name is "cubic-fedora", so that this application can

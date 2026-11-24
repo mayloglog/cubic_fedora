@@ -63,6 +63,21 @@ from cubic.utilities import processor
 # Pattern to match percent in the output. The format is "###.##%".
 PERCENT_PATTERN = re.compile(r'[0-9]{1,3}(\.[0-9]{2}){0,1}%')
 
+# Pattern to match progress bar redraws in the output, such as the bars
+# drawn by unsquashfs and mksquashfs:
+#   [============/          ]  487/2405  20%
+# These lines are redrawn in place (using the carriage return, "\r"),
+# and they are excluded from the real-time process output reporting.
+PROGRESS_BAR_PATTERN = re.compile(r'^\[.*\]\s')
+
+# Pattern to match the progress updates drawn by rsync with
+# --info=progress2, such as:
+#             1.23G  45%   58.66MB/s    0:01:23
+# These lines are also redrawn in place (using the carriage return,
+# "\r"), and they are excluded from the real-time process output
+# reporting.
+RSYNC_PROGRESS_PATTERN = re.compile(r'^\s*[0-9.]+[KMGTP]?i?B?\s+[0-9]{1,3}%')
+
 # Number of steps in the progress at 0%.
 START_POSITION = int(START_PERCENT * SCALE_FACTOR)
 
@@ -414,6 +429,13 @@ def process_command(command, parent_thread, working_directory=None):
             else:
                 percent = float((process.after)[:-1])
                 update(percent)
+                # Report any output received since the previous percent
+                # update, in real time (excluding progress bar redraws).
+                # This makes it possible to see error messages, warnings,
+                # and stage markers emitted by the process (such as the
+                # extract-root and compress-root commands) immediately,
+                # instead of waiting for the process to finish.
+                _log_process_output(process.before)
     except Exception as exception:
         logger.log_value('Error', 'An exception occurred')
         logger.log_value('The process thread id is', current_thread_id)
@@ -448,6 +470,42 @@ def process_command(command, parent_thread, working_directory=None):
         if percent < FINAL_PERCENT:
             logger.log_value('Adjust the final percent', f'from {percent:.2f}% to {FINAL_PERCENT:.2f}%')
             update(FINAL_PERCENT)
+
+
+########################################################################
+# Process Output Function
+########################################################################
+
+
+def _log_process_output(output):
+    """
+    Log the output received from a running process, in real time,
+    excluding blank lines and progress bar redraws.
+
+    The output is the text received by pexpect since the previous
+    percent match (process.before). Progress bar redraws, such as the
+    bars drawn by unsquashfs and mksquashfs, are drawn in place using
+    the carriage return ("\r"), and they are excluded, so that only
+    meaningful messages (stage markers, warnings, and errors) are
+    reported.
+
+    Arguments:
+    output : str
+        The output to log.
+    """
+
+    if not output: return
+
+    # Convert carriage returns (progress bar redraws) and line endings
+    # into separate lines.
+    lines = output.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+
+    for line in lines:
+        line = line.strip()
+        if not line: continue
+        if PROGRESS_BAR_PATTERN.match(line): continue
+        if RSYNC_PROGRESS_PATTERN.match(line): continue
+        logger.log_value('Process output', line)
 
 
 ########################################################################

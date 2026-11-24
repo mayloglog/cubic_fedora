@@ -1,0 +1,267 @@
+# Cubic-Fedora 简体中文翻译文件（明文存储）
+# 格式：原文 = 译文（一行一条，第一个 = 分隔原文与译文）
+# 说明：\n 表示换行；以 # 开头的行与空行被忽略。
+# 语言选择：优先读取环境变量 CUBIC_LANG，其次读取系统 LANG（如 zh_CN.UTF-8）。
+
+# ---- 品牌 ----
+Cubic = Cubic-Fedora
+Cubic-Fedora Website = Cubic-Fedora 网站
+Cubic-Fedora Wiki = Cubic-Fedora Wiki
+About Cubic-Fedora = 关于 Cubic-Fedora
+☕ Support Cubic-Fedora = ☕ 支持 Cubic-Fedora
+Help on this Page = 本页帮助
+Cubic-Fedora Version = Cubic-Fedora 版本
+This project was created using a previous version of Cubic-Fedora. = 此项目由旧版本的 Cubic-Fedora 创建。
+Remove the Cubic-Fedora project configuration. = 移除 Cubic-Fedora 项目配置。
+Cubic - Select Files to Copy = Cubic-Fedora - 选择要复制的文件
+Cubic - Select Directory = Cubic-Fedora - 选择目录
+Cubic - Select ISO Disk Image = Cubic-Fedora - 选择 ISO 磁盘镜像
+<b>Cubic</b>\n<small>Custom Ubuntu ISO Creator</small> = <b>Cubic-Fedora</b>\n<small>自定义 Fedora 和 Feidora ISO 制作器</small>
+Custom Fedora ISO Creator = 自定义 Fedora 和 Feidora ISO 制作器
+Custom Fedora and Feidora ISO Creator (Fedora Edition) = 自定义 Fedora 和 Feidora ISO 制作器（Fedora 版）
+
+# ---- 通用按钮与操作 ----
+❬Back = ❬返回
+❬Stop = ❬停止
+Alert❭ = 提示❭
+Close = 关闭
+Continue❭ = 继续❭
+Copy = 复制
+Customize❭ = 定制❭
+Delete = 删除
+Finish❭ = 完成❭
+Generate❭ = 生成❭
+Next❭ = 下一步❭
+Back = 返回
+Next = 下一步
+Cancel = 取消
+Select = 选择
+Create = 创建
+Rename = 重命名
+Remove = 移除
+Revert = 还原
+Undo = 撤销
+Redo = 重做
+Open the menu = 打开菜单
+Go to the previous page = 返回上一页
+Go to the next page = 前往下一页
+Click on each menu item to hide this alert = 点击任意菜单项以隐藏此提示
+★ New ➜ = ★ 新功能 ➜
+Show all files = 显示全部文件
+Copy files = 复制文件
+Create a new file = 新建文件
+Create a new directory = 新建目录
+Rename directory = 重命名目录
+Delete directory = 删除目录
+Rename file = 重命名文件
+Delete file = 删除文件
+Select All = 全选
+Copy Text = 复制文本
+Paste Text = 粘贴文本
+Test = 测试
+
+# ---- 通用字段名 ----
+Project Directory = 项目目录
+Custom Disk = 自定义磁盘
+Version = 版本
+Volume ID = 卷标
+Release = 发行版
+Disk Name = 磁盘名称
+Filename = 文件名
+Size = 大小
+Directory = 目录
+Checksum = 校验和
+Checksum File = 校验和文件
+OS Release = 操作系统版本
+Release URL = 发行说明 URL
+Progress = 进度
+File = 文件
+Standard = 标准安装
+Minimal = 最小安装
+Package = 软件包
+Kernel = 内核
+Preseed = 预置文件
+Boot = 引导
+Notes = 备注
+Kernel Files = 内核文件
+Snap Name = Snap 名称
+Snap Package = Snap 软件包
+lz4 = lz4
+lzo = lzo
+gzip = gzip
+zstd = zstd
+xz = xz
+
+# ---- 文件操作对话框 ----
+Create a new directory in: = 在以下位置新建目录：
+New directory name: = 新目录名：
+Create a new file in: = 在以下位置新建文件：
+New file name: = 新文件名：
+Delete directory: = 删除目录：
+Directory name: = 目录名：
+Delete file: = 删除文件：
+File name: = 文件名：
+Rename directory: = 重命名目录：
+Original name: = 原名称：
+New name: = 新名称：
+Rename file: = 重命名文件：
+(This file can not be displayed) = （无法显示此文件）
+
+# ---- 起始页 ----
+Select a project directory = 选择项目目录
+Select the original disk image = 选择原始磁盘镜像
+Select the original disk image to customize. = 选择要定制的原始磁盘镜像。
+Original Disk...\n = 原始磁盘...\n
+Custom Disk...\n = 自定义磁盘...\n
+Select the directory to save the custom disk image = 选择自定义磁盘镜像的保存目录
+Refresh the version number = 刷新版本号
+Update the release description. = 更新发行版描述。
+
+# ---- 提取页 ----
+Extracting the original disk... = 正在提取原始磁盘...
+Analyze the original disk image. = 分析原始磁盘镜像。
+Copy important files from the original disk image. = 复制原始磁盘镜像中的重要文件。
+Extract the compressed Linux file system. = 提取压缩的 Linux 文件系统。
+
+# ---- 准备页 ----
+Preparing options... = 正在准备选项...
+Identify disk boot kernels. = 识别磁盘引导内核。
+Identify installed packages. = 识别已安装的软件包。
+Create the package manifest for a standard install. = 生成标准安装的软件包清单。
+Create the package manifest for a minimal install. = 生成最小安装的软件包清单。
+Save the package manifest. = 保存软件包清单。
+
+# ---- 软件包页 ----
+Select packages to be automatically removed for a standard or minimal install. = 选择在标准或最小安装时自动移除的软件包。
+All listed packages will be available in the live environment, but check marked packages will be <i>removed during</i> installation. = 所有列出的软件包都会保留在 Live 环境中，勾选的软件包将在<i>安装过程中</i>被移除。
+Select packages to be removed during a minimal install, if supported by the installer = 若安装器支持，选择在最小安装期间移除的软件包
+＋Minimal = ＋最小安装
+
+# ---- 选项页 ----
+Make changes to advanced options on the tabs above, or proceed with default settings. = 在上方选项卡中修改高级选项，或使用默认设置继续。
+Select the kernel that will be used to bootstrap the customized disk.\nThe disk boot configurations will be automatically updated with the correct <tt>vmlinuz</tt> and <tt>initrd</tt> file names. = 选择用于引导自定义磁盘的内核。\n磁盘引导配置将自动更新为正确的 <tt>vmlinuz</tt> 和 <tt>initrd</tt> 文件名。
+Update the preseed files used to automate installation.\nReference these files in the disk boot configurations by prefixing them with <tt>/cdrom</tt>. = 更新用于自动化安装的预置文件。\n在磁盘引导配置中以 <tt>/cdrom</tt> 前缀引用这些文件。
+Update the disk boot configurations.\nThe <tt>vmlinuz</tt> and <tt>initrd</tt> file names have been automatically updated to match the selected disk boot kernel. = 更新磁盘引导配置。\n<tt>vmlinuz</tt> 和 <tt>initrd</tt> 文件名已自动更新为与所选引导内核匹配。
+
+# ---- 终端页 ----
+Customize the Linux file system using the virtual environment terminal. = 使用虚拟环境终端定制 Linux 文件系统。
+Copy files into the current directory = 复制文件到当前目录
+Click the Copy button to copy the files listed below into the virtual environment, or click the Cancel button. = 点击“复制”按钮将以下文件复制到虚拟环境，或点击“取消”。
+Click the Copy button to copy preseed files, or click the Cancel button. = 点击“复制”按钮复制预置文件，或点击“取消”。
+Click the Copy button to copy boot configuration files, or click the Cancel button. = 点击“复制”按钮复制引导配置文件，或点击“取消”。
+
+# ---- 生成页 ----
+Generating the customized disk image... = 正在生成自定义磁盘镜像...
+Copy the selected boot kernel files to the disk. = 将选定的引导内核文件复制到磁盘。
+Compress the customized Linux file system. = 压缩自定义的 Linux 文件系统。
+Update the customized Linux file system size. = 更新自定义 Linux 文件系统大小。
+Update the disk name and installer informaton. = 更新磁盘名称与安装器信息。
+Update the checksums for all files on the disk. = 更新磁盘上所有文件的校验和。
+Check the total size of all files on the disk. = 检查磁盘上所有文件的总大小。
+Generate the customized disk image. = 生成自定义磁盘镜像。
+Calculate the checksum for the new disk image. = 计算新磁盘镜像的校验和。
+Select the compression for the Linux file system.\nClick the Generate button to begin creating the customized disk image. = 选择 Linux 文件系统的压缩方式。\n点击“生成”按钮开始创建自定义磁盘镜像。
+⊲  Lower Compression = ⊲  更低压缩率
+Higher Compression  ⊳ = 更高压缩率  ⊳
+Larger Size  ⊳ = 更大体积  ⊳
+Smaller Size  ⊳ = 更小体积  ⊳
+Faster\n = 更快\n
+\nSlower = \n更慢
+Fast compression algorithm = 快速压缩算法
+Lempel–Ziv–Oberhumer algorithm = Lempel–Ziv–Oberhumer 算法
+GNU DEFLATE algorithm = GNU DEFLATE 算法
+Zstandard algorithm = Zstandard 算法
+Lempel–Ziv–Markov chain algorithm = Lempel–Ziv–Markov 链式算法
+
+# ---- 完成页 / 删除页 ----
+The following customized disk image has been successfully created. = 以下自定义磁盘镜像已成功创建。
+Open the custom disk image directory = 打开自定义磁盘镜像目录
+Delete all project files. = 删除所有项目文件。
+Delete all project files, except the generated disk image and the corresponding checksum file. = 删除所有项目文件（保留生成的磁盘镜像及对应校验和文件）。
+Discard all customizations to the Linux file system. = 放弃对 Linux 文件系统的全部定制。
+Discard all customizations to the disk. = 放弃对磁盘的全部定制。
+Remove the customized disk images and corresponding checksums. = 移除自定义磁盘镜像及对应校验和。
+Unmount the original disk image. = 卸载原始磁盘镜像。
+Test the generated disk image = 测试生成的磁盘镜像
+
+A new Cubic-Fedora project will be created using this directory. = 将使用此目录创建新的 Cubic-Fedora 项目。
+Analyzing... = 正在分析...
+Compressing the Linux file system. = 正在压缩 Linux 文件系统。
+Error. Cannot access directory. = 错误。无法访问目录。
+Error. Directory is required. = 错误。必须填写目录。
+Error. Directory not found. = 错误。目录不存在。
+Error. Disk name is required. = 错误。必须填写磁盘名称。
+Error. Filename is required. = 错误。必须填写文件名。
+Error. Invalid URL format. = 错误。URL 格式无效。
+Error. No installed packages found. = 错误。未找到已安装的软件包。
+Error. Not enough space on the disk. = 错误。磁盘空间不足。
+Error. Select a valid directory. = 错误。请选择有效目录。
+Error. The original disk directory is required. = 错误。必须填写原始磁盘目录。
+Error. The original disk image is required to copy important files and extract the Linux file system, but it is not available. = 错误。复制重要文件和提取 Linux 文件系统需要原始磁盘镜像，但当前不可用。
+Error. The original disk image is required to copy important files, but it is not available. = 错误。复制重要文件需要原始磁盘镜像，但当前不可用。
+Error. The original disk image is required to extract the Linux file system, but it is not available. = 错误。提取 Linux 文件系统需要原始磁盘镜像，但当前不可用。
+Error. The original volume ID is required. = 错误。必须填写原始卷标。
+Error. Unable to calculate checksums. = 错误。无法计算校验和。
+Error. Unable to copy file. = 错误。无法复制文件。
+Error. Unable to copy files from the original disk image. = 错误。无法从原始磁盘镜像复制文件。
+Error. Unable to create the compressed Linux file system. = 错误。无法创建压缩的 Linux 文件系统。
+Error. Unable to create the customized disk image. = 错误。无法创建自定义磁盘镜像。
+Error. Unable to extract the compressed Linux file system. = 错误。无法提取压缩的 Linux 文件系统。
+Error. Unable to get the customized file system size. = 错误。无法获取自定义文件系统大小。
+Error. Unable to get the live file system size. = 错误。无法获取 Live 文件系统大小。
+Error. Unable to get the size of the custom disk. = 错误。无法获取自定义磁盘大小。
+Error. Unable to get the total size. = 错误。无法获取总大小。
+Error. Unable to identify information about this disk = 错误。无法识别此磁盘的信息
+Error. Unable to identify the Linux file system on this disk. = 错误。无法识别此磁盘上的 Linux 文件系统。
+Error. Unable to link to the minimal file system size. = 错误。无法链接到最小安装文件系统大小。
+Error. Unable to link to the standard Linux file system. = 错误。无法链接到标准 Linux 文件系统。
+Error. Unable to remove file. = 错误。无法移除文件。
+Error. Unable to save file system size. = 错误。无法保存文件系统大小。
+Error. Unable to save the minimal file system size. = 错误。无法保存最小安装文件系统大小。
+Error. Unable to test the generated disk image. = 错误。无法测试生成的磁盘镜像。
+Error. Unable to update the disk name. = 错误。无法更新磁盘名称。
+Error. Unable to update the initrd boot file. = 错误。无法更新 initrd 引导文件。
+Error. Unable to update the install sources. = 错误。无法更新安装源。
+Error. Unable to update the vmlinuz boot file. = 错误。无法更新 vmlinuz 引导文件。
+Error. Volume ID is required. = 错误。必须填写卷标。
+Extracting the Linux file system. = 正在提取 Linux 文件系统。
+Merging Linux file systems. = 正在合并 Linux 文件系统。
+Release URL is optional. = 发行说明 URL 为可选项。
+Release is optional. = 发行版为可选项。
+Saved the package manifest file. = 已保存软件包清单文件。
+Select a disk image. = 请选择磁盘镜像。
+Select a project directory. = 请选择项目目录。
+Success. = 成功。
+Success. The original boot files are retained. = 成功。已保留原始引导文件。
+Testing. = 正在测试。
+Testing the generated disk image... = 正在测试生成的磁盘镜像...
+Testing testing testing. = 正在测试。
+The original disk name is not available. = 原始磁盘名称不可用。
+The original release URL is not available. = 原始发行说明 URL 不可用。
+The original release is not available. = 原始发行版不可用。
+This directory contains a legacy Cubic-Fedora project. = 此目录包含一个旧版 Cubic-Fedora 项目。
+This directory contains an existing Cubic-Fedora project. = 此目录包含一个现有的 Cubic-Fedora 项目。
+Unable to save the package manifest file. = 无法保存软件包清单文件。
+Updating the snap package configurations. = 正在更新 Snap 软件包配置。
+Version is optional. = 版本为可选项。
+Warning. The original disk image is not available. = 警告。原始磁盘镜像不可用。
+You are in the virtual environment. = 你正处于虚拟环境中。
+Nothing to delete. These files do not exist. = 无可删除内容。这些文件不存在。
+Nothing to delete. These files not exist. = 无可删除内容。这些文件不存在。
+Nothing to delete. This file does not exist. = 无可删除内容。该文件不存在。
+Nothing to unmount. = 无可卸载内容。
+Unable to delete the customized Linux files. = 无法删除自定义的 Linux 文件。
+Unable to delete the customized disk image files. = 无法删除自定义磁盘镜像文件。
+Unable to delete the mount point. = 无法删除挂载点。
+Unable to delete this file. = 无法删除此文件。
+Unable to unmount the iso. = 无法卸载 ISO。
+<span foreground="red">Error. Unable to update the initrd boot file.</span> = <span foreground="red">错误。无法更新 initrd 引导文件。</span>
+Use this kernel to bootstrap Fedora Server or Desktop disks. = 使用此内核引导 Fedora Server 或 Desktop 磁盘。
+This kernel is used to bootstrap the original disk. = 此内核用于引导原始磁盘。
+
+# ---- 提示页 ----
+• To use the improved capabilities in this version, click the Back button and create a new project.\n\n• To delete your existing project, click the Continue button and select the Delete icon on the next page.\n\n• To customize your existing project with limited capabilities, click the Continue button. = • 要使用本版本的改进功能，请点击“返回”按钮并新建项目。\n\n• 要删除现有项目，请点击“继续”按钮并在下一页选择删除图标。\n\n• 要以有限功能定制现有项目，请点击“继续”按钮。
+
+# ---- 常见状态消息 ----
+Error. Unable to identify information about this disk. = 错误。无法识别此磁盘的信息。
+Error. The rpm package is required to read the package database of this Fedora family disk. Please install it (sudo apt install rpm) and try again. = 错误。需要 rpm 软件包才能读取此 Fedora 系磁盘的软件包数据库。请先安装（sudo apt install rpm）后重试。

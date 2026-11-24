@@ -359,4 +359,4 @@ def copy_file(file_path, file_number, directory, total_files):
         if total_percent % 10 == 0:
             logger.log_value('Completed', f'{total_percent:n}%')
 
-    track_progress(command, progress_callback, quantity=total_files)
+    track_progress(command, progress_callback, working_directory=os.path.sep, quantity=total_files)

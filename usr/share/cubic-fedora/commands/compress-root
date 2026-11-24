@@ -43,8 +43,15 @@ mount_info_file="${project_directory}/.cubic_fedora_mounts"
 if [ ! -f "${mount_info_file}" ]; then
 
     # ------------------------------------------------------------------
-    # Debian family
+    # Debian family, or a Fedora family project with a tree layout (the
+    # source image directly contained the root file system tree, and
+    # nothing was mounted during the customization).
     # ------------------------------------------------------------------
+
+    # The target directory may not exist yet (for Fedora family tree
+    # layouts, the "LiveOS" directory is excluded from the custom disk
+    # copy on the Extract page). Create it if necessary.
+    mkdir -p "$(dirname "${squashfs_target}")"
 
     # unshare --fork --pid --kill-child -- \
     mksquashfs "${root_dir}" "${squashfs_target}" \
@@ -81,24 +88,50 @@ source "${mount_info_file}"
 # • CUBIC_ROOT_IMAGE      - the ext4 root file system image file
 # • CUBIC_ROOT_IMAGE_NAME - the image file name (ext3fs.img/rootfs.img)
 # • CUBIC_LIVEOS_STAGING  - the extracted LiveOS staging directory
+# • CUBIC_REPACK_MODE     - "squashfs" (repack the staging directory
+#                           with mksquashfs) or "copy" (copy the
+#                           modified image to the target file, to
+#                           preserve the original file format)
 
 # 1. Unmount the custom root directory.
+echo "Unmounting the custom root file system image..." >&2
 sync
 umount "${CUBIC_CUSTOM_ROOT}" || {
     echo "Error: Failed to unmount ${CUBIC_CUSTOM_ROOT}" >&2
     exit 1
 }
 
-# 2. Repack the LiveOS staging directory into the target squashfs
-#    image. The staging directory contains the updated root file system
-#    image (and any sibling files from the original squashfs image).
 mkdir -p "$(dirname "${squashfs_target}")"
-mksquashfs "${CUBIC_LIVEOS_STAGING}" "${squashfs_target}" \
-    -noappend \
-    -comp "${compression}" || {
-    echo "Error: Failed to create ${squashfs_target}" >&2
-    exit 1
-}
+
+if [ "${CUBIC_REPACK_MODE:-squashfs}" = "copy" ]; then
+
+    # 2. Copy the modified root file system image to the target file.
+    #    This mode is used when the source image was a raw ext2/ext3/
+    #    ext4 root file system image, to preserve the original file
+    #    format. Use rsync (instead of cp) so that the transfer
+    #    progress is reported as a percentage. The -S option preserves
+    #    sparseness.
+    echo "Copying the modified root file system image to ${squashfs_target}..." >&2
+    rsync --info=progress2 -a -S "${CUBIC_ROOT_IMAGE}" "${squashfs_target}" || {
+        echo "Error: Failed to copy ${CUBIC_ROOT_IMAGE} to ${squashfs_target}" >&2
+        exit 1
+    }
+
+else
+
+    # 2. Repack the LiveOS staging directory into the target squashfs
+    #    image. The staging directory contains the updated root file
+    #    system image (and any sibling files from the original squashfs
+    #    or EROFS image).
+    echo "Repacking the LiveOS staging directory into ${squashfs_target} (this may take several minutes for a large Feidora root file system image)..." >&2
+    mksquashfs "${CUBIC_LIVEOS_STAGING}" "${squashfs_target}" \
+        -noappend \
+        -comp "${compression}" || {
+        echo "Error: Failed to create ${squashfs_target}" >&2
+        exit 1
+    }
+
+fi
 
 # 3. Re-mount the root file system image, so that the virtual
 #    environment can still be entered when navigating back to the

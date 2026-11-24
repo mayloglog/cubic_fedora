@@ -43,6 +43,7 @@ import glob
 import os
 import platform
 import re
+import shutil
 import string
 import time
 
@@ -63,12 +64,20 @@ from cubic.utilities.processor import execute_synchronous, execute_asynchronous
 
 name = 'prepare_page'
 
+# The error message for the package query (if any). This value is set
+# by create_package_details_list() and its helper functions, and it is
+# displayed on the page by enter().
+package_query_message = None
+
 INITRAMFS_VERSION_PATTERN = re.compile(r'lib/modules/(\d[\d\.-]*\d)')
 
 # Valid initramfs compression formats are gzip, bzip2, lz4, lzma, lzop,
 # or xz, ignoring case. (See /etc/initramfs-tools/initramfs.conf).
 INITRAMFS_COMPRESSION_PATTERN = re.compile(r'(?i).*(gzip|bzip2|lz4|lzma|lzop|xz).*')
-COMPRESSION_EXTENSIONS = {'gzip': 'gz', 'bzip2': 'bz', 'lz4': 'lz', 'lzma': 'lz', 'lzop': 'lz', 'xz': 'xz'}
+# The 'zstd' entry is required for Fedora family disks, because the
+# initramfs files are Zstandard compressed (since Fedora 35). The
+# file command reports the format as "Zstandard".
+COMPRESSION_EXTENSIONS = {'gzip': 'gz', 'bzip2': 'bz', 'lz4': 'lz', 'lzma': 'lz', 'lzop': 'lz', 'xz': 'xz', 'zstandard': 'zst', 'zstd': 'zst'}
 
 ########################################################################
 # Navigation Functions
@@ -199,6 +208,13 @@ def enter(action, old_page=None):
         displayer.update_status('prepare_page__installed_packages', PROCESSING)
         time.sleep(SLEEP_0500_MS)
         model.package_details_list = create_package_details_list(model.project.custom_root_directory)
+        if not model.package_details_list and package_query_message:
+            # Display the specific error message for the package query.
+            displayer.update_label('prepare_page__installed_packages_message', package_query_message, True)
+            displayer.update_status('prepare_page__installed_packages', ERROR)
+            logger.log_value('Do not propagate exception', package_query_message)
+            time.sleep(SLEEP_0500_MS)
+            return  # Stay on this page.
         if model.package_details_list:
             count = len(model.package_details_list)
             logger.log_value('Number of installed packages found', count)
@@ -655,7 +671,7 @@ def _update_kernel_details_list(kernel_details_list):
                 # If Subiquity is used, select the original kernel.
                 # Added for Cubic 2023.03.78 to support Ubuntu 23.04.
                 if note: note += ' '  # os.linesep
-                note += 'Use this kernel to bootstrap Ubuntu Server 21.10+ or Desktop 23.04+.'
+                note += 'Use this kernel to bootstrap Fedora Server or Desktop disks.'
                 # Set the selected index for the the original disk kernel.
                 selected_index = index
             # if is_server_image()
@@ -817,10 +833,7 @@ def update_vmlinuz_details_list(directory, details_list):
         version_name = get_vmlinuz_version_name(file_path)
         # if not version_name: version_name = '0.0.0-0'
         logger.log_value('▹ The vmlinuz version is', version_name)
-        if version_name:
-            version_integers = tuple(map(int, re.split('[.-]', version_name)))
-        else:
-            version_integers = tuple(map(int, re.split('[.-]', '0.0.0-0')))
+        version_integers = _parse_version_integers(version_name)
         new_file_name = calculate_vmlinuz_file_name(file_path)
 
         details = {
@@ -832,6 +845,39 @@ def update_vmlinuz_details_list(directory, details_list):
         }
         details_list.append(details)
         time.sleep(SLEEP_0250_MS)
+
+
+def _parse_version_integers(version_name):
+    """
+    Parse a kernel version name into a tuple of integers, for sorting
+    and matching.
+
+    Debian family version names contain numbers, dots, and dashes only
+    (for example, "6.8.0-31"). Fedora family version names may also
+    contain alphanumeric distribution suffixes (for example,
+    "6.12.4-300.fc45.x86", from "vmlinuz-6.12.4-300.fc45.x86_64").
+    Splitting such a name on dots and dashes and converting the parts
+    to integers would raise a ValueError. Instead, extract the numeric
+    groups from the name. The vmlinuz and the initrd of the same kernel
+    produce the same tuple, so they can be matched.
+
+    Arguments:
+    version_name : str
+        The version name (may be None).
+
+    Returns:
+    : tuple(int)
+        A tuple of integers.
+    """
+
+    if not version_name:
+        return (0, 0, 0, 0)
+
+    numbers = re.findall(r'\d+', str(version_name))
+    if not numbers:
+        return (0, 0, 0, 0)
+
+    return tuple(int(number) for number in numbers)
 
 
 def calculate_vmlinuz_file_name(file_path):
@@ -978,8 +1024,16 @@ def update_initrd_details_list(directory, details_list):
 
     # Replace simlinks with the actual file_path.
     directory = os.path.realpath(directory)
-    file_path_pattern = os.path.join(directory, 'initrd*')
-    for file_path in glob.glob(file_path_pattern):
+
+    # The initrd file name patterns. Fedora family initramfs files are
+    # named "initramfs-<version>.img" (they are generated by dracut),
+    # so an additional pattern is required for Fedora family projects.
+    file_path_patterns = [os.path.join(directory, 'initrd*')]
+    if model.project.distro_family == 'fedora':
+        file_path_patterns.append(os.path.join(directory, 'initramfs-*'))
+        file_path_patterns.append(os.path.join(directory, 'initramfs.img'))
+    for file_path_pattern in file_path_patterns:
+      for file_path in glob.glob(file_path_pattern):
         # Replace simlinks with the actual file_path.
         real_path = os.path.realpath(file_path)
         if not os.path.exists(real_path):
@@ -1026,10 +1080,7 @@ def update_initrd_details_list(directory, details_list):
         version_name = get_initrd_version_name(file_path)
         # if not version_name: version_name = '0.0.0-0'
         logger.log_value('▹ The initrd version is', version_name)
-        if version_name:
-            version_integers = tuple(map(int, re.split('[.-]', version_name)))
-        else:
-            version_integers = tuple(map(int, re.split('[.-]', '0.0.0-0')))
+        version_integers = _parse_version_integers(version_name)
         new_file_name = calculate_initrd_file_name(file_path)
 
         details = {
@@ -1421,7 +1472,19 @@ def _create_rpm_package_details_list(root_directory):
     create_package_details_list() for the package details format).
     """
 
+    global package_query_message
+    package_query_message = None
     package_details_list = []
+
+    # The rpm command must be installed on the host system (it is not
+    # installed by default on Ubuntu). It is included in the Depends of
+    # this package.
+    if not shutil.which('rpm'):
+        package_query_message = (
+            'Error. The rpm package is required to read the package database of this Fedora family disk. '
+            'Please install it (sudo apt install rpm) and try again.')
+        logger.log_value('Error', package_query_message)
+        return package_details_list
 
     # Query the rpm database in the customized Linux file system. The
     # "%{NAME}" and "%{VERSION}" query formats are separated by a tab

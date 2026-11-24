@@ -56,6 +56,20 @@ Click the Generate button to begin creating the customized disk image.</property
       </packing>
     </child>
     <child>
+      <object class="GtkCheckButton" id="compression_page__reuse_squashfs_check_button">
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="margin-left">24</property>
+        <property name="margin-right">24</property>
+        <property name="label" translatable="yes">Reuse the existing compressed Linux file system (skip recompressing, for testing the generated disk image)</property>
+        <signal name="toggled" handler="on_toggled__compression_page__reuse_squashfs_check_button" swapped="no"/>
+      </object>
+      <packing>
+        <property name="left-attach">0</property>
+        <property name="top-attach">2</property>
+      </packing>
+    </child>
+    <child>
       <!-- n-columns=7 n-rows=7 -->
       <object class="GtkGrid">
         <property name="visible">True</property>

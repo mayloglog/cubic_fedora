@@ -275,6 +275,7 @@ from cubic.constants import STAR, CUBIC_WEBSITE, CUBIC_WIKI, CUBIC_PAGE_HELP, CU
 from cubic.utilities.displayer import SLIDE_NONE, SLIDE_LEFT, SLIDE_RIGHT, SLIDE_DOWN, SLIDE_UP, CROSS_FADE
 from cubic.utilities import constructor
 from cubic.utilities import displayer
+from cubic.utilities import i18n
 from cubic.utilities import logger
 from cubic.utilities import model
 from cubic.utilities.processor import terminate_process
@@ -382,6 +383,22 @@ def on_clicked_page_help_menu_button(button):
     #         displayer.set_button_label('page_help_menu_button', new_text)
     #         model.application.visited_sites.append(CUBIC_PAGE_HELP)
     #         displayer.set_visible('alert_label', len(model.application.visited_sites) < len(CUBIC_SITES))
+
+
+def on_clicked_language_menu_button(button):
+    """
+    Toggle the display language between the original English texts and
+    the loaded translations (Simplified Chinese), and re-translate all
+    of the widgets that were loaded by the builder.
+    """
+
+    logger.log_label('Toggle the display language')
+
+    language = i18n.toggle_language()
+
+    # Re-translate all of the widgets (the tr() function of the i18n
+    # module translates in both directions).
+    i18n.translate_widgets(model.builder)
 
 
 def on_clicked_website_menu_button(button):

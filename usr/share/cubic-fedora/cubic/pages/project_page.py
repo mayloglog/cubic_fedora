@@ -834,6 +834,13 @@ def mount_original_iso(original_iso_file_path):
         # This ISO is already mounted.
         pass
 
+    # Detect the distribution family (Debian family or Fedora family),
+    # while the original disk image is mounted. The family is required
+    # by the custom fields initialization (the volume id), and it is
+    # detected again (and confirmed) during the analysis on the Extract
+    # page.
+    model.project.distro_family = iso_utilities.detect_distro_family(model.project.iso_mount_point)
+
 
 def selected_original_iso_file_path(original_iso_file_path):
 
@@ -1109,6 +1116,37 @@ def initialize_original_from_iso(original_iso_file_path):
     return fields
 
 
+def construct_custom_iso_volume_id_for_family(original_iso_volume_id, custom_iso_version_number):
+    """
+    Construct the custom ISO volume id, respecting the distribution
+    family.
+
+    Fedora family disks (Fedora, Feidora, etc.) locate the live root
+    device by the volume label (root=live:CDLABEL=... in the boot
+    configurations, handled by the dracut dmsquash-live module). The
+    default custom volume id is kept unchanged (the original volume
+    id), so that the boot configurations continue to work. When the
+    user changes the volume id, the label references in the boot
+    configurations are updated on the Generate page.
+
+    Arguments:
+    original_iso_volume_id : str
+        The original ISO volume id.
+    custom_iso_version_number : str
+        The custom ISO version number.
+
+    Returns:
+    : str
+        The custom ISO volume id.
+    """
+
+    if model.project.distro_family == 'fedora':
+        logger.log_value('The custom ISO volume id is kept unchanged for the distribution family', model.project.distro_family)
+        return original_iso_volume_id
+
+    return constructor.construct_custom_iso_volume_id(original_iso_volume_id, custom_iso_version_number)
+
+
 def initialize_custom_from_iso():
     """
     Initialize the following custom fields by constructing them from the
@@ -1130,7 +1168,7 @@ def initialize_custom_from_iso():
     fields.iso_version_number.value = constructor.construct_custom_iso_version_number()
     fields.iso_file_name.value = constructor.construct_custom_iso_file_name(original.iso_file_name.value, fields.iso_version_number.value)
     fields.iso_directory.value = model.project.directory
-    fields.iso_volume_id.value = constructor.construct_custom_iso_volume_id(original.iso_volume_id.value, fields.iso_version_number.value)
+    fields.iso_volume_id.value = construct_custom_iso_volume_id_for_family(original.iso_volume_id.value, fields.iso_version_number.value)
     fields.iso_release_name.value = constructor.construct_custom_iso_release_name(original.iso_release_name.value)
     fields.iso_disk_name.value = constructor.construct_custom_iso_disk_name(fields.iso_volume_id.value, fields.iso_release_name.value)
     fields.iso_release_notes_url.value = original.iso_release_notes_url.value
@@ -1830,7 +1868,7 @@ def on_changed__project_page__custom_iso_version_number_entry(widget):
     # on_changed handler is invoked.
     displayer.update_entry('project_page__custom_iso_file_name_entry', iso_file_name)
 
-    iso_volume_id = constructor.construct_custom_iso_volume_id(original.iso_volume_id.value, custom.iso_version_number.value)
+    iso_volume_id = construct_custom_iso_volume_id_for_family(original.iso_volume_id.value, custom.iso_version_number.value)
     # custom.iso_volume_id.value will be updated automatically when the
     # on_changed handler is invoked.
     displayer.update_entry('project_page__custom_iso_volume_id_entry', iso_volume_id)

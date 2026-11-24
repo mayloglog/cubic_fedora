@@ -616,7 +616,7 @@ def validate_page():
             is_next_sensitive=True,
             is_next_visible=True)
 
-        message = 'A new Cubic project will be created using this directory.'
+        message = 'A new Cubic-Fedora project will be created using this directory.'
         displayer.update_label('start_page__project_directory_message', message, False)
         displayer.set_entry_error('start_page__project_directory_entry', OK)
 
@@ -654,7 +654,7 @@ def validate_page():
             is_next_sensitive=True,
             is_next_visible=True)
 
-        message = 'This directory contains a legacy Cubic project.'
+        message = 'This directory contains a legacy Cubic-Fedora project.'
         displayer.update_label('start_page__project_directory_message', message, False)
         displayer.set_entry_error('start_page__project_directory_entry', OK)
 
@@ -683,7 +683,7 @@ def validate_page():
         is_next_sensitive=True,
         is_next_visible=True)
 
-    message = 'This directory contains an existing Cubic project.'
+    message = 'This directory contains an existing Cubic-Fedora project.'
     displayer.update_label('start_page__project_directory_message', message, False)
     displayer.set_entry_error('start_page__project_directory_entry', OK)
 

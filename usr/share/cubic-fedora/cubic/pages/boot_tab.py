@@ -195,6 +195,18 @@ class BootTab(FilesTab):
 
         logger.log_value('Search and replace in source view', source_view.file_path)
 
+        # For Fedora family projects (Fedora, Feidora, etc.), when the
+        # boot directory was not identified during the analysis (the
+        # kernel may be embedded in a unified kernel image, or stored in
+        # an unrecognized location), the original boot files are
+        # retained on the customized disk, and the boot configurations
+        # must NOT be rewritten. Rewriting them would reference files
+        # that do not exist (the kernel copy step is skipped), and the
+        # customized disk would not boot.
+        if model.project.distro_family == 'fedora' and not model.layout.casper_directory:
+            logger.log_value('Skip. The boot configurations are not rewritten for the distribution family', model.project.distro_family)
+            return 0
+
         # Get new values.
 
         # Workaround for Grml.

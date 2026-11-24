@@ -174,11 +174,19 @@ def enter(action, old_page=None):
         # Copy boot files
         # --------------------------------------------------------------
 
-        displayer.update_status('generate_page__copy_boot_files', PROCESSING)
-        time.sleep(SLEEP_0500_MS)
-        is_error = copy_kernel_files()
-        if is_error: return  # Stay on this page.
-        time.sleep(SLEEP_0500_MS)
+        if model.options.reuse_squashfs_image:
+            # Fast mode: the boot files are already on the custom disk
+            # (from a previous Generate run); reuse them.
+            logger.log_value('Skip. The boot files are reused', 'Reuse squashfs image')
+            displayer.update_status('generate_page__copy_boot_files', OK)
+            displayer.update_label('generate_page__copy_boot_files_message', 'Skipped. The existing boot files are reused.', False)
+            time.sleep(SLEEP_0500_MS)
+        else:
+            displayer.update_status('generate_page__copy_boot_files', PROCESSING)
+            time.sleep(SLEEP_0500_MS)
+            is_error = copy_kernel_files()
+            if is_error: return  # Stay on this page.
+            time.sleep(SLEEP_0500_MS)
 
         # --------------------------------------------------------------
         # Create squashfs
@@ -190,7 +198,23 @@ def enter(action, old_page=None):
         # TODO: Should we check model.layout.squashfs_file_name, instead
         # of model.layout.minimal_squashfs_file_name, as on the extract
         # page?
-        if not model.layout.minimal_squashfs_file_name:
+        if model.options.reuse_squashfs_image:
+            # Fast mode: verify that the compressed Linux file system
+            # from a previous Generate run exists, and reuse it (skip
+            # recompressing the customized Linux file system).
+            directory = model.layout.squashfs_directory
+            file_name = model.layout.squashfs_file_name
+            reuse_target_file_path = os.path.join(model.project.custom_disk_directory, directory, file_name)
+            logger.log_value('Reuse the existing compressed Linux file system', reuse_target_file_path)
+            if not os.path.isfile(reuse_target_file_path):
+                message = 'Error. No compressed Linux file system found. Run the normal Generate first.'
+                displayer.update_label('generate_page__create_squashfs_message', message, True)
+                displayer.update_status('generate_page__create_squashfs', ERROR)
+                return  # Stay on this page.
+            displayer.update_status('generate_page__create_squashfs', OK)
+            displayer.update_label('generate_page__create_squashfs_message', 'Reused the existing compressed Linux file system.', False)
+            is_error = False
+        elif not model.layout.minimal_squashfs_file_name:
 
             # There is only one squashfs file.
 
@@ -445,6 +469,20 @@ def copy_kernel_files():
     # Vmlinuz & Initrd
     # ------------------------------------------------------------------
 
+    # For Fedora family projects (Fedora, Feidora, etc.), if the boot
+    # directory was not identified during the analysis (the kernel may
+    # be embedded in a unified kernel image, or stored in an
+    # unrecognized location), skip copying the kernel files. The
+    # original boot files were copied to the custom disk on the Extract
+    # page, so the customized disk still boots as before.
+    if model.project.distro_family == 'fedora' and not model.layout.casper_directory:
+        logger.log_label('Update the vmlinuz boot file')
+        logger.log_value('Skip. The boot directory was not identified for the distribution family', model.project.distro_family)
+        message = 'Success. The original boot files are retained.'
+        displayer.update_label('generate_page__copy_boot_files_message', message, False)
+        displayer.update_status('generate_page__copy_boot_files', OK)
+        return False  # (No error)
+
     time.sleep(SLEEP_0500_MS)
 
     logger.log_label('Identify the selected kernel')
@@ -606,7 +644,7 @@ def _copy_kernel_file(source_file_path, target_file_path, user, file_number, tot
         if total_percent % 10 == 0:
             logger.log_value('Completed', f'{total_percent:n}%')
 
-    track_progress(command, progress_callback)
+    track_progress(command, progress_callback, working_directory=os.path.sep)
 
 
 # ----------------------------------------------------------------------
@@ -648,7 +686,11 @@ def create_squashfs(source_file_path, target_file_path, file_number, total_files
             logger.log_value('Completed', f'{total_percent:n}%')
 
     try:
-        track_progress(command, progress_callback)
+        # The working directory is explicitly set to the root directory
+        # (which always exists), so that the process is immune to the
+        # application's inherited working directory being deleted or
+        # unmounted.
+        track_progress(command, progress_callback, working_directory=os.path.sep)
     except InterruptException as exception:
         if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
@@ -743,7 +785,7 @@ def create_squashfs_01(source_file_path, target_file_path, file_number, total_fi
             logger.log_value('Completed', f'{total_percent:n}%')
 
     try:
-        track_progress(command, progress_callback)
+        track_progress(command, progress_callback, working_directory=os.path.sep)
     except InterruptException as exception:
         if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
@@ -812,7 +854,7 @@ def create_squashfs_ORIGINAL():
             logger.log_value('Completed', f'{percent:n}%')
 
     try:
-        track_progress(command, progress_callback)
+        track_progress(command, progress_callback, working_directory=os.path.sep)
     except InterruptException as exception:
         if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
             # message = '<span foreground="red">Error. Not enough space on the disk.</span>'
@@ -1205,6 +1247,39 @@ def update_disk_and_installer_info():
         logger.log_value('Do not propagate exception', exception)
         return True  # (Error)
 
+    # Automatically correct the custom volume id to match the live root
+    # device label referenced by the boot configurations (Fedora
+    # family). This is best-effort; the disk image is generated even
+    # when the correction fails.
+
+    try:
+        _auto_correct_live_root_label()
+    except Exception as exception:
+        logger.log_value('Warning. Unable to correct the live root device label', exception)
+        logger.log_value('Do not propagate exception', exception)
+
+    # Correct the live media boot parameters (SELinux enforcement and
+    # the media check).
+
+    is_error = _correct_live_boot_parameters()
+    if is_error: return is_error
+
+    # Correct the SELinux boot parameters and remove the media check
+    # boot parameter (Fedora family). These are best-effort; the disk
+    # image is generated even when the corrections fail.
+
+    try:
+        _correct_selinux_boot_parameters()
+    except Exception as exception:
+        logger.log_value('Warning. Unable to correct the SELinux boot parameters', exception)
+        logger.log_value('Do not propagate exception', exception)
+
+    try:
+        _remove_media_check_boot_parameter()
+    except Exception as exception:
+        logger.log_value('Warning. Unable to remove the media check boot parameter', exception)
+        logger.log_value('Do not propagate exception', exception)
+
     # Update the install sources file.
 
     try:
@@ -1359,6 +1434,302 @@ def _update_disk_info():
     logger.log_value('The custom disk image name and release date are', line)
     file_path = os.path.join(model.project.custom_disk_directory, '.disk', 'info')
     file_utilities.write_line(line, file_path, True)
+
+
+def _auto_correct_live_root_label():
+    """
+    Automatically correct the custom volume id so that it matches the
+    live root device label referenced by the boot configurations
+    (Fedora family only).
+
+    Fedora family disks (Fedora, Feidora, etc.) locate the live root
+    device by the volume label (root=live:CDLABEL=... or
+    root=live:LABEL=..., handled by the dracut dmsquash-live module).
+    The label is part of the boot contract of the disk image: the
+    references also exist inside the configuration embedded in the EFI
+    system partition image (images/efiboot.img), which can not be
+    rewritten by this application. Therefore, instead of rewriting the
+    boot configurations, the custom volume id is corrected to match the
+    label that the boot configurations actually reference (xorriso
+    writes this value into the ISO9660 primary volume descriptor,
+    option -V).
+
+    The files of the original disk image (already copied to the custom
+    disk directory) are scanned for label references, and the most
+    frequently referenced label value is used. If no label reference is
+    found, the custom volume id is left unchanged.
+
+    Returns:
+    : None
+
+    Raises:
+    : Exception
+        The exception that occurred.
+    """
+
+    logger.log_label('Correct the live root device label')
+
+    # Only Fedora family disks locate the live root device by the volume
+    # label.
+    if model.project.distro_family != 'fedora':
+        logger.log_value('Skip. Not applicable for the distribution family', model.project.distro_family)
+        return
+
+    # Scan the configurations of the custom disk for live root device
+    # label references.
+    label_references = {}
+    for root_directory in ('boot', 'EFI', 'isolinux', 'images'):
+        directory_path = os.path.join(model.project.custom_disk_directory, root_directory)
+        if not os.path.isdir(directory_path): continue
+        for dir_path, dir_names, file_names in os.walk(directory_path):
+            for file_name in file_names:
+                if not file_name.endswith(('.cfg', '.conf')): continue
+                file_path = os.path.join(dir_path, file_name)
+                try:
+                    text = file_utilities.read_file(file_path, errors='ignore')
+                except Exception as exception:
+                    logger.log_value('Warning. Unable to read', file_path)
+                    continue
+                for match in re.finditer(r'root=live:(?:CD)?LABEL=([A-Za-z0-9._:+-]+)', text):
+                    label = match.group(1)
+                    label_references[label] = label_references.get(label, 0) + 1
+                    logger.log_value('Found a live root device label reference', f'{label} in {os.path.relpath(file_path, model.project.custom_disk_directory)}')
+
+    if not label_references:
+        logger.log_value('Skip. The boot configurations do not reference a live root device label', model.custom.iso_volume_id)
+        return
+
+    # Use the most frequently referenced label.
+    from collections import Counter
+    config_label, reference_count = Counter(label_references).most_common(1)[0]
+    logger.log_value('The live root device label to use', f'{config_label} ({reference_count} reference(s))')
+    if len(label_references) > 1:
+        logger.log_value('Warning. The boot configurations reference multiple labels', list(label_references))
+
+    # Truncate to the ISO9660 volume id length written by xorriso.
+    config_label = config_label[:32]
+
+    if model.custom.iso_volume_id != config_label:
+        logger.log_value('The custom volume id was automatically corrected to match the boot configurations', f'{model.custom.iso_volume_id} to {config_label}')
+        model.custom.iso_volume_id = config_label
+    else:
+        logger.log_value('The custom volume id already matches the boot configuration label', config_label)
+
+
+def _correct_live_boot_parameters():
+    """
+    Correct the live media boot parameters for the distribution family
+    (SELinux enforcement and the media check). The corrections are
+    best-effort; a failure is logged and does not stop the generation
+    of the disk image.
+
+    Returns:
+    is_error : bool
+        Always False (the corrections are best-effort).
+    """
+
+    try:
+        _correct_selinux_boot_parameters()
+    except Exception as exception:
+        logger.log_value('Warning. Unable to correct the SELinux boot parameters', exception)
+        logger.log_value('Do not propagate exception', exception)
+
+    try:
+        _remove_media_check_boot_parameter()
+    except Exception as exception:
+        logger.log_value('Warning. Unable to remove the media check boot parameter', exception)
+        logger.log_value('Do not propagate exception', exception)
+
+    return False
+
+
+def _for_each_boot_configuration_file():
+    """
+    Iterate the configuration files of the custom disk.
+
+    Yields the path and the content of each configuration file (a file
+    with the ".cfg" or ".conf" extension) located in the boot
+    directories (boot, EFI, isolinux, images) of the custom disk.
+
+    Arguments:
+    : None
+
+    Yields:
+    file_path : str
+        The full path of the configuration file.
+    text : str
+        The content of the configuration file.
+    """
+
+    for root_directory in ('boot', 'EFI', 'isolinux', 'images'):
+        directory_path = os.path.join(model.project.custom_disk_directory, root_directory)
+        if not os.path.isdir(directory_path): continue
+        for dir_path, dir_names, file_names in os.walk(directory_path):
+            for file_name in file_names:
+                if not file_name.endswith(('.cfg', '.conf')): continue
+                file_path = os.path.join(dir_path, file_name)
+                try:
+                    text = file_utilities.read_file(file_path, errors='ignore')
+                except Exception as exception:
+                    logger.log_value('Warning. Unable to read', file_path)
+                    logger.log_value('The exception is', exception)
+                    continue
+                yield file_path, text
+
+
+def _write_boot_configuration_file_updates(file_path, original_text, updated_text):
+    """
+    Write the updated content to a configuration file, if the content
+    changed.
+
+    Arguments:
+    file_path : str
+        The full path of the configuration file.
+    original_text : str
+        The original content of the configuration file.
+    updated_text : str
+        The updated content of the configuration file.
+
+    Returns:
+    is_updated : bool
+        True if the file was updated, otherwise False.
+    """
+
+    if updated_text == original_text: return False
+
+    logger.log_value('Updated the boot configuration', os.path.relpath(file_path, model.project.custom_disk_directory))
+
+    with open(file_path, 'w', encoding='utf-8', errors='ignore') as file:
+        file.write(updated_text)
+
+    return True
+
+
+def _correct_selinux_boot_parameters():
+    """
+    Correct the SELinux boot parameters (Fedora family only).
+
+    Fedora family disks (Fedora, Feidora, etc.) run SELinux, which
+    relies on the security labels ("security.selinux" extended
+    attributes) of the files of the Linux file system. When the
+    customized Linux file system is repacked on a host system that
+    does not support these extended attributes (Ubuntu disables
+    SELinux, and the extraction tools can not read or write the
+    attribute of the "security" namespace), the labels of the files
+    copied into the staging area / the custom root directory are lost.
+
+    A Linux file system with missing or invalid security labels, which
+    is booted with SELinux enabled, causes the initialization process
+    (systemd in the initial RAM disk) to flood the kernel log with
+    "Permission denied" messages when it attempts to set the security
+    context for the device and runtime directories
+    ("/dev/tty[0-9]+", "/run", ...), which finally fails with "Failed
+    to allocate manager object", and the boot stops.
+
+    Adding the "enforcing=0" boot parameter to the kernel command line
+    disables SELinux enforcement at boot, which is the standard
+    workaround used by the live media remaster tools (such as repopk)
+    for this situation. The live media customization does not depend
+    on SELinux enforcement, and the installer (Anaconda with Kickstart)
+    relabels the target file system during the installation.
+
+    This operation is idempotent: the parameter is added only when it
+    is not already present, and it is added only to the kernel command
+    lines ("linux", "linuxefi", "kernel", "append") that reference the
+    live root device ("root=live:").
+
+    Returns:
+    : None
+
+    Raises:
+    : Exception
+        The exception that occurred.
+    """
+
+    logger.log_label('Correct the SELinux boot parameters')
+
+    # Only Fedora family disks run SELinux. Debian family disks do not
+    # enable SELinux by default.
+    if model.project.distro_family != 'fedora':
+        logger.log_value('Skip. Not applicable for the distribution family', model.project.distro_family)
+        return
+
+    number_of_files_updated = 0
+    number_of_lines_updated = 0
+    for file_path, text in _for_each_boot_configuration_file():
+        updated_lines = []
+        for line in text.splitlines(keepends=True):
+            # Only the kernel command lines support boot parameters.
+            line_is_kernel_command = bool(re.match(r'^\s*(?:linux(?:16|efi)?|kernel|append)\b', line.lower()))
+            if line_is_kernel_command and 'root=live:' in line:
+                # Do not add the parameter if the command line already
+                # controls SELinux.
+                if not re.search(r'(?i)(?:\benforcing\b|\bselinux\b)', line):
+                    line_without_ending = line.rstrip('\n')
+                    line_ending = line[len(line_without_ending):]
+                    line = f'{line_without_ending} enforcing=0{line_ending}'
+                    number_of_lines_updated += 1
+                    logger.log_value('Added enforcing=0', line.strip())
+            updated_lines.append(line)
+        if _write_boot_configuration_file_updates(file_path, text, ''.join(updated_lines)):
+            number_of_files_updated += 1
+
+    logger.log_value('The number of boot configuration files updated', number_of_files_updated)
+    logger.log_value('The number of kernel command lines updated', number_of_lines_updated)
+
+
+def _remove_media_check_boot_parameter():
+    """
+    Remove the media check boot parameter (Fedora family only).
+
+    Fedora family disks boot the "Test this media" entry by default
+    (the "rd.live.check" parameter requests an integrity check of the
+    disk image against the MD5 checksum embedded in the original disk
+    image). The embedded checksum is neither updated nor reproducible
+    for a customized disk image, and xorriso does not recreate this
+    checksum area when the customized disk image is generated
+    ("The media check is complete, the result is: NA", followed by
+    "Media check failed! We do not recommend using this medium. System
+    will halt in 12 hours").
+
+    Removing this parameter prevents the misleading failure message
+    and the scheduled halt. The menu entry remains selectable, and it
+    starts the live system without the media check.
+
+    This operation is idempotent: the parameter is removed only when
+    it is present.
+
+    Returns:
+    : None
+
+    Raises:
+    : Exception
+        The exception that occurred.
+    """
+
+    logger.log_label('Remove the media check boot parameter')
+
+    # Only Fedora family disks use the "rd.live.check" boot parameter.
+    if model.project.distro_family != 'fedora':
+        logger.log_value('Skip. Not applicable for the distribution family', model.project.distro_family)
+        return
+
+    number_of_files_updated = 0
+    number_of_lines_updated = 0
+    for file_path, text in _for_each_boot_configuration_file():
+        if 'rd.live.check' not in text: continue
+        updated_lines = []
+        for line in text.splitlines(keepends=True):
+            updated_line = re.sub(r'\s*rd\.live\.check\b', '', line)
+            if updated_line != line:
+                number_of_lines_updated += 1
+                logger.log_value('Removed rd.live.check', updated_line.strip())
+            updated_lines.append(updated_line)
+        if _write_boot_configuration_file_updates(file_path, text, ''.join(updated_lines)):
+            number_of_files_updated += 1
+
+    logger.log_value('The number of boot configuration files updated', number_of_files_updated)
+    logger.log_value('The number of kernel command lines updated', number_of_lines_updated)
 
 
 def _update_install_sources_file():
@@ -1789,6 +2160,34 @@ def create_iso_image():
         displayer.update_status('generate_page__create_iso_image', ERROR)
         logger.log_value('Do not propagate exception', exception)
         return True  # (Error)
+
+    #
+    # Implant the media check MD5 checksum (Fedora family).
+    #
+
+    # Fedora family disks (Fedora, Feidora, etc.) boot from a "Test
+    # this media" boot entry by default (rd.live.check), which
+    # validates the disk image using an embedded MD5 checksum
+    # (implanted by implantisomd5 from the isomd5sum package). The
+    # checksum must be recalculated after the customized disk image is
+    # created, otherwise the media check fails and the system halts.
+    if model.project.distro_family == 'fedora':
+        logger.log_label('Implant the media check MD5 checksum')
+        iso_file_path_for_md5 = os.path.join(model.custom.iso_directory, model.custom.iso_file_name)
+        displayer.update_label('generate_page__create_iso_image_message', 'Implanting the media check MD5 checksum...', False)
+        command = f'implantisomd5 "{iso_file_path_for_md5}"'
+        result, exit_status, signal_status = execute_synchronous(command)
+        logger.log_value('The result is', result)
+        logger.log_value('The exit status, signal status is', f'{exit_status}, {signal_status}')
+        if exit_status or signal_status:
+            message = 'Warning. Unable to implant the media check MD5 checksum (the isomd5sum package may not be installed). The "Test this media" boot entry will fail.'
+            displayer.update_label('generate_page__create_iso_image_message', message, True)
+        else:
+            # The disk image size is measured below, after the
+            # checksum is implanted.
+            message = 'Implanted the media check MD5 checksum.'
+            displayer.update_label('generate_page__create_iso_image_message', message, False)
+        time.sleep(SLEEP_0500_MS)
 
     #
     # Get the size.

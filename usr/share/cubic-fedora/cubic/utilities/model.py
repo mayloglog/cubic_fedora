@@ -160,8 +160,11 @@ layout.casper_directory = 'casper', False
 layout.casper_directory = 'casper_pop-os*', False
 # Fedora family boot directories. Newer Fedora releases keep the kernel
 # and initrd in "images/pxeboot"; older releases keep them in "isolinux".
-# (See the Fedora Section below for more information.)
+# Some releases keep them in "boot". (See the Fedora Section below for
+# more information.)
 layout.casper_directory = 'images/pxeboot', False
+layout.casper_directory = 'images', False
+layout.casper_directory = 'boot', False
 
 # Only used to identify the casper directory.
 layout.initrd_file_name = 'initrd.img', False  # grml64
@@ -170,12 +173,16 @@ layout.initrd_file_name = 'initrd.lz', False
 layout.initrd_file_name = 'initrd', False
 # Fedora family initrd file names.
 layout.initrd_file_name = 'initrd0.img', False  # Fedora <= 20
+layout.initrd_file_name = 'initramfs-*.img', False  # Fedora (dracut)
+layout.initrd_file_name = 'initrd-*.img', False
+layout.initrd_file_name = 'initramfs.img', False
 
 # Only used to identify the casper directory.
 layout.vmlinuz_file_name = 'vmlinuz.efi', False
 layout.vmlinuz_file_name = 'vmlinuz', False
 # Fedora family vmlinuz file names.
 layout.vmlinuz_file_name = 'vmlinuz0', False  # Fedora <= 20
+layout.vmlinuz_file_name = 'vmlinuz-*', False  # Fedora (versioned)
 
 # 2. General Section
 
@@ -344,6 +351,7 @@ options.update_os_release = None
 options.has_minimal_install = None
 options.boot_configurations = None
 options.compression = None
+options.reuse_squashfs_image = False
 
 ########################################################################
 # Page/Module Specific

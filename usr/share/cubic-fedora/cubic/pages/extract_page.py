@@ -150,9 +150,29 @@ def setup(action, old_page=None):
                 model.layout.standard_squashfs_file_name and \
                 model.layout.live_squashfs_file_name)
 
-            model.status.is_success_analyze = is_success_analyze_1 or is_success_analyze_2
-            model.status.is_success_copy = is_success_copy_1 or is_success_copy_2
-            model.status.is_success_extract = is_success_extract_1 or is_success_extract_2
+            # Checks for Fedora family layouts (using a nested LiveOS
+            # image). The boot files (casper directory) may not be
+            # identifiable on Fedora family disks (for example, when the
+            # kernel is embedded in a unified kernel image), so the
+            # squashfs image is the essential requirement.
+            is_success_analyze_3 = bool(                     \
+                model.project.distro_family == 'fedora' and  \
+                model.status.is_success_analyze and          \
+                model.layout.squashfs_directory and          \
+                model.layout.squashfs_file_name)
+            is_success_copy_3 = bool(                        \
+                model.project.distro_family == 'fedora' and  \
+                model.status.is_success_copy and             \
+                model.layout.squashfs_directory)
+            is_success_extract_3 = bool(                     \
+                model.project.distro_family == 'fedora' and  \
+                model.status.is_success_extract and          \
+                model.layout.squashfs_directory and          \
+                model.layout.squashfs_file_name)
+
+            model.status.is_success_analyze = is_success_analyze_1 or is_success_analyze_2 or is_success_analyze_3
+            model.status.is_success_copy = is_success_copy_1 or is_success_copy_2 or is_success_copy_3
+            model.status.is_success_extract = is_success_extract_1 or is_success_extract_2 or is_success_extract_3
 
         # --------------------------------------------------------------
         # Analyze
@@ -342,7 +362,14 @@ def enter(action, old_page=None):
 
                 is_error = analyze_iso_layout(source_directory_path)
 
-                if is_error: return  # Stay on this page.
+                if is_error:
+                    # Display the error on the page (the status icon
+                    # remains a spinner otherwise, which looks like the
+                    # application is stuck).
+                    displayer.update_status('extract_page__analyze_original_iso', ERROR)
+                    message = 'Error. Unable to identify the Linux file system on this disk.'
+                    displayer.update_label('extract_page__analyze_original_iso_message', message, True)
+                    return  # Stay on this page.
 
             # Pause to allow the user to see the result.
             message = 'Success.'
@@ -1136,12 +1163,25 @@ def analyze_iso_layout(source_directory_path):
         model.layout.standard_squashfs_file_name)
     logger.log_value('Is success analyze 2', is_success_analyze_2)
 
-    model.status.is_success_analyze = is_success_analyze_1 or is_success_analyze_2
+    if model.project.distro_family == 'fedora':
+        # For Fedora family disks, the boot files (casper directory) may
+        # not be identifiable (for example, when the kernel is embedded
+        # in a unified kernel image, or stored in an unrecognized
+        # location). The squashfs image is the essential requirement for
+        # customizing the disk. The original boot files are retained on
+        # the customized disk, so the disk still boots as before.
+        is_success_analyze_3 = bool(                \
+            model.layout.squashfs_directory and     \
+            model.layout.squashfs_file_name)
+        logger.log_value('Is success analyze 3 (Fedora family)?', is_success_analyze_3)
+        if not model.layout.casper_directory:
+            logger.log_value('Note', 'The boot files were not identified on this disk; the kernel may be embedded in a unified kernel image, or stored in an unrecognized location. The original boot files will be retained on the customized disk.')
+        model.status.is_success_analyze = is_success_analyze_3
+    else:
+        model.status.is_success_analyze = is_success_analyze_1 or is_success_analyze_2
 
     is_error = not model.status.is_success_analyze
 
-    ### TODO:
-    ### Display error and stop spinner.
     logger.log_value('Is error?', is_error)
 
     return is_error
@@ -1413,7 +1453,12 @@ def copy_original_iso_files():
             logger.log_value('Completed', f'{percent:n}%')
 
     try:
-        track_progress(command, progress_callback)
+        # The working directory is explicitly set to the root directory
+        # (which always exists), so that the process is immune to the
+        # application's inherited working directory being deleted or
+        # unmounted (which would cause rsync to fail with
+        # "getcwd(): No such file or directory").
+        track_progress(command, progress_callback, working_directory=os.path.sep)
     except InterruptException as exception:
         model.status.is_success_copy = False
         if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
@@ -1469,7 +1514,7 @@ def extract_linux_file_system(source_file_path, target_file_path, file_number, t
             logger.log_value('Completed', f'{total_percent:n}%')
 
     try:
-        track_progress(command, progress_callback)
+        track_progress(command, progress_callback, working_directory=os.path.sep)
     except InterruptException as exception:
         model.status.is_success_extract = False
         if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):
@@ -1519,7 +1564,7 @@ def merge_linux_file_system(source_file_path, target_file_path, file_number, tot
             logger.log_value('Completed', f'{total_percent:n}%')
 
     try:
-        track_progress(command, progress_callback)
+        track_progress(command, progress_callback, working_directory=os.path.sep)
     except InterruptException as exception:
         model.status.is_success_extract = False
         if any(re.findall(r'exceeds free space|No space left|out of space', str(exception), re.IGNORECASE)):

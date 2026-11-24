@@ -574,9 +574,24 @@ def setup_boot_tab():
         # Use raw string ("r") to avoid syntax warninings. See GH:#340.
         # - SyntaxWarning: invalid escape sequence '\|'
         # - SyntaxWarning: invalid escape sequence '\;'
-        command = rf'find {" ".join(root_file_paths)} -type f -exec grep -HiIl "linux.*vmlinuz\|kernel.*vmlinuz" {{}} \;'
+        # For Fedora family disks, the boot configurations may reference
+        # the kernel and the initrd in other ways (for example, newer
+        # releases with unified kernel images may not reference vmlinuz
+        # at all), so a broader search pattern is used.
+        if model.project.distro_family == 'fedora':
+            command = rf'find {" ".join(root_file_paths)} -type f -exec grep -HiIl "linux.*vmlinuz\|kernel.*vmlinuz\|initrd" {{}} \;'
+        else:
+            command = rf'find {" ".join(root_file_paths)} -type f -exec grep -HiIl "linux.*vmlinuz\|kernel.*vmlinuz" {{}} \;'
         result, exit_status, signal_status = execute_synchronous(command, model.project.custom_disk_directory)
-        model.options.boot_configurations = result.split()
+        # The result is None if the command produced no output (for
+        # example, when no boot configuration files match the search
+        # pattern, such as on Fedora family disks with unified kernel
+        # images).
+        if result:
+            model.options.boot_configurations = result.split()
+        else:
+            model.options.boot_configurations = []
+            logger.log_value('No boot configuration files matched the search pattern in the directories', root_file_paths)
 
     # Create the tree of boot configurations files.
     # boot_tab.create_tree(['boot/grub', 'isolinux'], model.options.boot_configurations)

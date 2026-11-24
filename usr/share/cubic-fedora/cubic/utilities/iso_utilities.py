@@ -200,10 +200,20 @@ def unmount_fedora_root(project_directory):
 
     The custom root directory is a mounted ext4 root file system image
     (see the extract-root command). The mount information is saved in a
-    ".cubic_fedora_mounts" file in the project directory. For Debian
-    family projects, the mount information file does not exist, and the
-    unmount-root command exits successfully without doing anything.
+    ".cubic_fedora_mounts" file in the project directory. If the mount
+    information file does not exist (Debian family projects, or the
+    first extraction for a Fedora family project), there is nothing to
+    unmount, and this function returns immediately without invoking the
+    unmount-root command.
     """
+
+    # Skip the pkexec invocation if the mount information file does not
+    # exist. This avoids an unnecessary authorization prompt on the
+    # first extraction, and for Debian family projects.
+    mount_info_file_path = os.path.join(project_directory, FEDORA_MOUNTS_FILE_NAME)
+    if not os.path.isfile(mount_info_file_path):
+        logger.log_value('Skip. There is no custom root file system image to unmount for', project_directory)
+        return None, None, None
 
     logger.log_value('Unmount the custom root file system image for the project', project_directory)
 

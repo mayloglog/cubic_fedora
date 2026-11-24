@@ -1543,7 +1543,7 @@ def move_file_progress(source_file_path, target_file_path, user='root'):
             logger.log_value('Completed', f'{total_percent:n}%')
 
     try:
-        track_progress(command, progress_callback, quantity=total_files)
+        track_progress(command, progress_callback, working_directory=os.path.sep, quantity=total_files)
         # Ensure progress bar displays 100%; this is necessary if the
         # file was previously moved.
         # displayer.update_list_store_progress_bar_percent('snaps_page__snap_details__list_store', snap_number, 1, FINAL_PERCENT)

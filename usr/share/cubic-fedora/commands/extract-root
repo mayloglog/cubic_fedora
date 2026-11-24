@@ -5,7 +5,8 @@
 #                                                                      #
 # Extract the root file system for Cubic.                              #
 #                                                                      #
-# Supports two ISO layouts:                                            #
+# The type of the source image is detected automatically, and one of   #
+# the following layouts is used:                                       #
 #                                                                      #
 # • Debian family (Ubuntu, Debian, etc.):                              #
 #   The source file is a squashfs image that directly contains the     #
@@ -14,23 +15,42 @@
 #       <ISO>/<squashfs directory>/filesystem.squashfs                 #
 #           └── the root file system                                   #
 #                                                                      #
-# • Fedora family (Fedora, Feidora, etc.):                             #
+# • Fedora family (Fedora, Feidora, etc.), squashfs layout:            #
 #   The source file is a squashfs image that contains an ext4 root     #
 #   file system image (LiveOS/ext3fs.img or LiveOS/rootfs.img). The    #
 #   squashfs image is extracted into the custom temp directory, and    #
 #   the inner root file system image is mounted (read/write) at the    #
-#   custom root directory, so that changes made in the virtual         #
-#   environment are persisted to the image file. The extracted         #
-#   LiveOS directory is retained as a staging area for repacking the   #
-#   squashfs image on the Generate page.                               #
+#   custom root directory. The extracted LiveOS directory is retained  #
+#   as a staging area for repacking the squashfs image on the          #
+#   Generate page.                                                     #
 #                                                                      #
-#       <ISO>/LiveOS/squashfs.img                                      #
-#           └── LiveOS/ext3fs.img (or LiveOS/rootfs.img)               #
-#                 └── the root file system                             #
+# • Fedora family, EROFS layout (newer Fedora releases):               #
+#   The source file (although it may be named "squashfs.img") is an    #
+#   EROFS image. It is mounted (read-only), its contents are copied    #
+#   into the custom temp directory (the staging area), and the inner   #
+#   root file system image is mounted (read/write) at the custom root  #
+#   directory.                                                         #
 #                                                                      #
-#   Mount information is saved in "<project>/.cubic_fedora_mounts" so  #
-#   that compress-root, unmount-root, and unmount-iso can unmount the  #
-#   image and repack the squashfs image.                               #
+# • Fedora family, tree layout (newer Fedora releases):               #
+#   The source file (although it may be named "squashfs.img") is an   #
+#   EROFS or squashfs image that directly contains the root file      #
+#   system tree (hundreds of thousands of files, and no embedded      #
+#   root file system image). The tree is extracted (or copied)        #
+#   directly into the custom root directory; nothing is mounted and   #
+#   no mount information is saved. On the Generate page, the custom   #
+#   root directory is repacked with mksquashfs, like the Debian       #
+#   family flow.                                                      #
+#                                                                     #
+# • Fedora family, raw root file system layout:                       #
+#   The source file itself is an ext2/ext3/ext4 root file system       #
+#   image. It is copied into the staging area and mounted (read/write) #
+#   at the custom root directory. On the Generate page, the modified   #
+#   image is copied back to the target file unchanged (the file        #
+#   format is preserved).                                              #
+#                                                                      #
+# Mount information is saved in "<project>/.cubic_fedora_mounts" so    #
+# that compress-root, unmount-root, and unmount-iso can unmount the    #
+# image and repack the source image.                                   #
 ########################################################################
 
 ########################################################################
@@ -71,6 +91,98 @@ cleanup_previous_mount() {
     fi
 }
 
+clear_staging_directory() {
+    if [ -d "${custom_temp_directory}" ]; then
+        rm -rf "${custom_temp_directory:?}" || {
+            echo "Error: Failed to clear the staging directory ${custom_temp_directory}" >&2
+            exit 1
+        }
+    fi
+    mkdir -p "${custom_temp_directory}"
+}
+
+# Locate an embedded root file system image inside a mounted (or
+# extracted) tree, and print its path relative to the tree root. The
+# last candidate ("LiveOS/squashfs.img") matches the raw root file
+# system layout, where the source image itself is an ext2/ext3/ext4
+# root file system image that was copied into the staging directory
+# under its original name.
+find_inner_image() {
+    local base="${1}"
+    local candidate
+    for candidate in "LiveOS/ext3fs.img" "LiveOS/rootfs.img" "ext3fs.img" "rootfs.img" "LiveOS/squashfs.img"; do
+        if [ -f "${base}/${candidate}" ]; then
+            echo "${candidate}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Mount the inner root file system image (read/write) at the custom
+# root directory, and save the mount information. The image must be
+# located in the staging directory (which is writable), so that all
+# modifications made in the virtual environment are persisted.
+#
+# ${1} = the staging directory
+# ${2} = the repack mode ("squashfs" or "copy")
+# ${3} = optional: the path of the inner root file system image,
+#        relative to the staging directory. If not supplied, the image
+#        is located using find_inner_image().
+mount_fedora_root_from_staging() {
+    local staging="${1}"
+    local repack_mode="${2}"
+    local inner="${3:-}"
+    local root_image root_image_type
+
+    if [ -z "${inner}" ]; then
+        inner=$(find_inner_image "${staging}") || {
+            echo "Error: No ext3fs.img or rootfs.img found inside ${squashfs_file}" >&2
+            exit 1
+        }
+    fi
+    root_image="${staging}/${inner}"
+    if [ ! -f "${root_image}" ]; then
+        echo "Error: Root file system image not found: ${root_image}" >&2
+        exit 1
+    fi
+
+    # Verify that the root file system image is an ext file system
+    # image, so that it can be mounted (read/write).
+    root_image_type=$(blkid -o value -s TYPE "${root_image}" 2>/dev/null)
+    if [ "${root_image_type}" != "ext2" ] && [ "${root_image_type}" != "ext3" ] && [ "${root_image_type}" != "ext4" ]; then
+        echo "Error: Unsupported root file system image type (${root_image_type:-unknown}): ${root_image}" >&2
+        exit 1
+    fi
+
+    mkdir -p "${target_dir}"
+    echo "Mounting the root file system image ${root_image} (read/write)..." >&2
+    mount -o loop,rw "${root_image}" "${target_dir}" || {
+        echo "Error: Failed to mount ${root_image}" >&2
+        exit 1
+    }
+
+    # Save the mount information for compress-root, unmount-root, and
+    # unmount-iso. The repack mode indicates how the Generate page
+    # repacks the image:
+    # • "squashfs" - mksquashfs the staging directory (for squashfs and
+    #                EROFS source images).
+    # • "copy"     - copy the modified image to the target file (for
+    #                raw ext2/ext3/ext4 source images, to preserve the
+    #                original file format).
+    cat > "${mount_info_file}" <<EOF
+CUBIC_CUSTOM_ROOT="${target_dir}"
+CUBIC_ROOT_IMAGE="${root_image}"
+CUBIC_ROOT_IMAGE_NAME="$(basename "${root_image}")"
+CUBIC_LIVEOS_STAGING="${staging}"
+CUBIC_SQUASHFS_SOURCE="${squashfs_file}"
+CUBIC_REPACK_MODE="${repack_mode}"
+EOF
+
+    echo "The custom root file system image was mounted successfully." >&2
+    exit 0
+}
+
 ########################################################################
 # Command
 ########################################################################
@@ -78,79 +190,196 @@ cleanup_previous_mount() {
 # Clean up any previous Fedora family mount for this target.
 cleanup_previous_mount
 
-# Determine whether the squashfs image contains an embedded root file
-# system image (Fedora family), or the root file system itself (Debian
-# family).
-inner_image_path=""
-for candidate in "LiveOS/ext3fs.img" "LiveOS/rootfs.img" "ext3fs.img" "rootfs.img"; do
-    if unsquashfs -l "${squashfs_file}" 2>/dev/null | grep -q "${candidate}"; then
-        inner_image_path="${candidate}"
-        break
-    fi
-done
-
-if [ -z "${inner_image_path}" ]; then
-
-    # ------------------------------------------------------------------
-    # Debian family
-    # ------------------------------------------------------------------
-
-    unsquashfs -force -dest "${target_dir}" "${squashfs_file}"
-    exit $?
-
+# Determine the file system type of the source image.
+image_type=$(blkid -o value -s TYPE "${squashfs_file}" 2>/dev/null)
+if [ -z "${image_type}" ]; then
+    # Fall back to the file command (for example, for EROFS images on
+    # older blkid versions).
+    file_output=$(file -b "${squashfs_file}" 2>/dev/null)
+    case "${file_output}" in
+        *EROFS*|*erofs*) image_type="erofs" ;;
+        *Squashfs*|*squashfs*) image_type="squashfs" ;;
+        *"ext4"*|*"ext3"*|*"ext2"*) image_type="ext4" ;;
+    esac
 fi
+echo "The source image file system type is '${image_type:-unknown}'." >&2
 
-# ----------------------------------------------------------------------
-# Fedora family
-# ----------------------------------------------------------------------
+case "${image_type}" in
 
-# 1. Extract the squashfs image into the custom temp directory. The
-#    extracted LiveOS directory is the staging area that will be used
-#    to repack the squashfs image on the Generate page.
-if [ -d "${custom_temp_directory}" ]; then
-    rm -rf "${custom_temp_directory:?}" || {
-        echo "Error: Failed to clear the staging directory ${custom_temp_directory}" >&2
+    # ------------------------------------------------------------------
+    # Squashfs source image
+    # ------------------------------------------------------------------
+    squashfs)
+
+        # Determine whether the squashfs image contains an embedded root
+        # file system image (Fedora family), or the root file system
+        # itself (Debian family).
+        inner_image_path=""
+        for candidate in "LiveOS/ext3fs.img" "LiveOS/rootfs.img" "ext3fs.img" "rootfs.img"; do
+            if unsquashfs -l "${squashfs_file}" 2>/dev/null | grep -q "${candidate}"; then
+                inner_image_path="${candidate}"
+                break
+            fi
+        done
+
+        if [ -z "${inner_image_path}" ]; then
+            # The image directly contains the root file system tree (no
+            # embedded root file system image). This is also the Debian
+            # family layout. Extract the tree into the custom root
+            # directory.
+            extract_debian() {
+                echo "The image directly contains the root file system tree; extracting it into the custom root directory..." >&2
+                echo "NOTE: A large root file system tree (hundreds of thousands of files) may take several minutes to extract." >&2
+                # unsquashfs fails if the parent of the destination
+                # directory does not exist, so create the destination
+                # directory first.
+                mkdir -p "${target_dir}"
+                unsquashfs -force -dest "${target_dir}" "${squashfs_file}"
+                exit $?
+            }
+            extract_debian
+        fi
+
+        # Fedora family
+        echo "Detected a Fedora family layout: the squashfs image contains an embedded root file system image (${inner_image_path})." >&2
+        echo "Extracting the squashfs image into the staging directory ${custom_temp_directory}..." >&2
+        echo "NOTE: The embedded root file system image is very large (about 8-10 GB for a Feidora live ISO), so this step may take several minutes. Watch the progress bar; if it does not move at all, check the project log file." >&2
+        clear_staging_directory
+
+        # Run unsquashfs in the background, and report the amount of
+        # data staged so far every 3 seconds. The unsquashfs progress
+        # bar only reports percentages; the monitor reports actual
+        # bytes, so that it is possible to tell a slow target disk
+        # (the staged size keeps growing) apart from a stalled process
+        # (the staged size stops growing).
+        unsquashfs -force -dest "${custom_temp_directory}" "${squashfs_file}" &
+        unsquashfs_pid=$!
+        monitor_extraction() {
+            while kill -0 "${unsquashfs_pid}" 2>/dev/null; do
+                sleep 3
+                kill -0 "${unsquashfs_pid}" 2>/dev/null || break
+                staged_mb=$(du -sm "${custom_temp_directory}" 2>/dev/null | cut -f1)
+                echo "Extraction monitor: ${staged_mb:-0} MB staged so far." >&2
+            done
+        }
+        monitor_extraction &
+        monitor_pid=$!
+        wait "${unsquashfs_pid}"
+        exit_status=$?
+        kill "${monitor_pid}" 2>/dev/null
+        wait "${monitor_pid}" 2>/dev/null
+        if [ "${exit_status}" -ne 0 ]; then
+            echo "Error: Failed to extract ${squashfs_file}" >&2
+            exit 1
+        fi
+        mount_fedora_root_from_staging "${custom_temp_directory}" "squashfs"
+        ;;
+
+    # ------------------------------------------------------------------
+    # EROFS source image (newer Fedora family releases)
+    # ------------------------------------------------------------------
+    erofs)
+
+        echo "Detected an EROFS image (newer Fedora family layout)..." >&2
+        erofs_mount=$(mktemp -d /tmp/cubic-erofs-XXXXXX)
+        cleanup_erofs() {
+            if mountpoint -q "${erofs_mount}" 2>/dev/null; then
+                umount "${erofs_mount}" 2>/dev/null
+            fi
+            rmdir "${erofs_mount}" 2>/dev/null
+        }
+        mount -t erofs -o loop,ro "${squashfs_file}" "${erofs_mount}" || {
+            echo "Error: Failed to mount the EROFS image ${squashfs_file}" >&2
+            echo "Make sure the erofs kernel module is available (modprobe erofs)." >&2
+            rmdir "${erofs_mount}" 2>/dev/null
+            exit 1
+        }
+
+        # Determine whether the EROFS image contains an embedded root
+        # file system image (Fedora family, nested layout), or the root
+        # file system tree itself (Fedora family, tree layout).
+        inner_image_path=""
+        if find_inner_image "${erofs_mount}" >/dev/null 2>&1; then
+            inner_image_path=$(find_inner_image "${erofs_mount}")
+        fi
+
+        if [ -n "${inner_image_path}" ]; then
+
+            # Nested layout: the EROFS image contains an embedded root
+            # file system image. Copy the contents into the staging
+            # directory, and mount the inner image (read/write) at the
+            # custom root directory.
+            echo "Detected a nested layout: the EROFS image contains an embedded root file system image (${inner_image_path})." >&2
+            clear_staging_directory
+            echo "Copying the contents of the EROFS image into the staging directory ${custom_temp_directory}..." >&2
+            echo "NOTE: The embedded root file system image is very large (about 8-10 GB for a Feidora live ISO), so this step may take several minutes." >&2
+            # Use rsync (instead of cp) so that the transfer progress is
+            # reported as a percentage.
+            rsync --info=progress2 -a "${erofs_mount}/" "${custom_temp_directory}/" || {
+                echo "Error: Failed to copy the contents of ${squashfs_file}" >&2
+                cleanup_erofs
+                exit 1
+            }
+            cleanup_erofs
+            mount_fedora_root_from_staging "${custom_temp_directory}" "squashfs"
+
+        else
+
+            # Tree layout: the EROFS image directly contains the root
+            # file system tree. Copy the tree into the custom root
+            # directory (there is no inner image and nothing is
+            # mounted, so no mount information is saved; the Generate
+            # page repacks the custom root directory with mksquashfs,
+            # like the Debian family flow).
+            echo "The image directly contains the root file system tree; copying it into the custom root directory ${target_dir}..." >&2
+            echo "NOTE: A large root file system tree (hundreds of thousands of files) may take several minutes to copy." >&2
+            echo "Building the file list; the progress bar starts updating once the transfer begins..." >&2
+            mkdir -p "${target_dir}"
+            # Use rsync (instead of cp) so that the transfer progress is
+            # reported as a percentage.
+            rsync --info=progress2 -a "${erofs_mount}/" "${target_dir}/" || {
+                echo "Error: Failed to copy the contents of ${squashfs_file}" >&2
+                cleanup_erofs
+                exit 1
+            }
+            cleanup_erofs
+            echo "The root file system tree was extracted successfully." >&2
+            exit 0
+
+        fi
+        ;;
+
+    # ------------------------------------------------------------------
+    # Raw ext2/ext3/ext4 root file system source image (Fedora family)
+    # ------------------------------------------------------------------
+    ext2|ext3|ext4)
+
+        echo "Detected a raw root file system image (Fedora family layout)..." >&2
+        clear_staging_directory
+        mkdir -p "${custom_temp_directory}/LiveOS"
+        inner_image_path="LiveOS/$(basename "${squashfs_file}")"
+        echo "Copying the root file system image into the staging directory ${custom_temp_directory}..." >&2
+        echo "NOTE: The root file system image is very large (about 8-10 GB for a Feidora live ISO), so this step may take several minutes." >&2
+        # Use rsync (instead of cp) so that the transfer progress is
+        # reported as a percentage. The -S option preserves sparseness.
+        rsync --info=progress2 -a -S "${squashfs_file}" "${custom_temp_directory}/${inner_image_path}" || {
+            echo "Error: Failed to copy ${squashfs_file}" >&2
+            exit 1
+        }
+        mount_fedora_root_from_staging "${custom_temp_directory}" "copy" "${inner_image_path}"
+        ;;
+
+    # ------------------------------------------------------------------
+    # Unsupported or unknown source image
+    # ------------------------------------------------------------------
+    *)
+
+        echo "Error: Unsupported or unknown image type for ${squashfs_file}." >&2
+        echo "Please run the following commands and report the output:" >&2
+        echo "  file \"${squashfs_file}\"" >&2
+        echo "  blkid \"${squashfs_file}\"" >&2
+        echo "  ls -la \"$(dirname "${squashfs_file}")\"" >&2
         exit 1
-    }
-fi
-mkdir -p "${custom_temp_directory}"
-unsquashfs -force -dest "${custom_temp_directory}" "${squashfs_file}" || {
-    echo "Error: Failed to extract ${squashfs_file}" >&2
-    exit 1
-}
+        ;;
 
-# 2. Mount the inner root file system image (read/write) at the custom
-#    root directory. The image file resides in the custom temp
-#    directory (which is writable), so all modifications made in the
-#    virtual environment are persisted to the image file.
-root_image="${custom_temp_directory}/${inner_image_path}"
-if [ ! -f "${root_image}" ]; then
-    echo "Error: Root file system image not found: ${root_image}" >&2
-    exit 1
-fi
-
-# Verify that the root file system image is an ext file system image,
-# so that it can be mounted (read/write).
-root_image_type=$(blkid -o value -s TYPE "${root_image}" 2>/dev/null)
-if [ "${root_image_type}" != "ext2" ] && [ "${root_image_type}" != "ext3" ] && [ "${root_image_type}" != "ext4" ]; then
-    echo "Error: Unsupported root file system image type (${root_image_type:-unknown}): ${root_image}" >&2
-    exit 1
-fi
-
-mkdir -p "${target_dir}"
-mount -o loop,rw "${root_image}" "${target_dir}" || {
-    echo "Error: Failed to mount ${root_image}" >&2
-    exit 1
-}
-
-# 3. Save the mount information for compress-root, unmount-root, and
-#    unmount-iso.
-cat > "${mount_info_file}" <<EOF
-CUBIC_CUSTOM_ROOT="${target_dir}"
-CUBIC_ROOT_IMAGE="${root_image}"
-CUBIC_ROOT_IMAGE_NAME="$(basename "${root_image}")"
-CUBIC_LIVEOS_STAGING="${custom_temp_directory}"
-CUBIC_SQUASHFS_SOURCE="${squashfs_file}"
-EOF
-
-exit 0
+esac

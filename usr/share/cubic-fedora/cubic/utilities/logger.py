@@ -38,6 +38,8 @@
 # Imports
 ########################################################################
 
+import datetime
+import sys
 import textwrap
 
 from cubic.constants import BACKGROUD_GREEN, BACKGROUD_YELLOW, NORMAL
@@ -52,6 +54,18 @@ log = False
 log_file = None
 verbose = False
 
+# Real-time console reporting.
+# When the application is launched from a command line terminal, stderr
+# is a terminal (tty), and all log messages are echoed to the console
+# (with a time stamp) as they are generated, in real time. This makes
+# it possible to troubleshoot long running operations, such as
+# extracting or repacking a large Feidora root file system image.
+# When the application is launched from the desktop (using the
+# cubic-fedora.desktop launcher), stderr is not a terminal, and this
+# value is False, so the console output is disabled.
+console = sys.stderr.isatty()
+
+
 ########################################################################
 # Logging Functions
 ########################################################################
@@ -59,19 +73,35 @@ verbose = False
 
 def log_title(text):
 
-    if verbose or log: _log_title(text)
+    if verbose or log or console: _log_title(text)
 
 
 def log_label(text):
 
-    if verbose or log: _log_label(text)
+    if verbose or log or console: _log_label(text)
 
 
 def log_value(column_a_text, column_b_text=None):
 
     # if verbose or log: _log_value_top(column_a_text, column_b_text, column_a_initial_indent='    ')
     # if verbose or log: _log_value_bottom(column_a_text, column_b_text, column_a_initial_indent='    ')
-    if verbose or log: _log_value_hanging(column_a_text, column_b_text, column_a_initial_indent='  • ', column_a_subsequent_indent='    ')
+    if verbose or log or console: _log_value_hanging(column_a_text, column_b_text, column_a_initial_indent='  • ', column_a_subsequent_indent='    ')
+
+
+########################################################################
+# Console Output Functions
+########################################################################
+
+
+def _console_write(text=''):
+    """
+    Write a line to the console (stderr) immediately, with a time
+    stamp. The output is flushed, so that it is displayed in real time,
+    even when the console output is redirected to a file or a pipe.
+    """
+
+    time_stamp = f'{datetime.datetime.now():%H:%M:%S}'
+    print(f'[{time_stamp}] {text}', file=sys.stderr, flush=True)
 
 
 ########################################################################
@@ -87,6 +117,11 @@ def _log_title(text):
         print()
         print(f'{BACKGROUD_YELLOW}{lines:<{total_width}}{NORMAL}')
         print()
+    if console:
+        _console_write()
+        for line in lines.split('\n'):
+            _console_write(line)
+        _console_write()
     if log_file:
         _write('')
         _write(f'{lines:<{total_width}}')
@@ -107,6 +142,11 @@ def _log_label(text):
             column_a_line = f'{column_a_lines[index]:<{width_column_a}}'
             print(f'{BACKGROUD_GREEN}{column_a_line}{NORMAL}')
         print()
+    if console:
+        _console_write()
+        for index in range(column_a_size):
+            _console_write(column_a_lines[index])
+        _console_write()
     if log_file:
         _write('')
         for index in range(column_a_size):
@@ -258,6 +298,8 @@ def _log_value_hanging(column_a_text, column_b_text=None, column_a_initial_inden
         # Print column A and column B.
         if verbose:
             print(f'{column_a_line}{column_b_line}')
+        if console:
+            _console_write(f'{column_a_line}{column_b_line}'.rstrip())
         if log_file:
             _write(f'{column_a_line}{column_b_line}')
 

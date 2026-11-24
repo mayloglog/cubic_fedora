@@ -1174,6 +1174,11 @@ class FilesTab:
         This method is used by options_page.
         """
 
+        # The files tree may not have been created (for example, when an
+        # exception occurred while setting up the tab).
+        if not self.files_tree:
+            return []
+
         return self.files_tree.get_required_file_paths()
 
     def get_full_file_path(self, file_path):

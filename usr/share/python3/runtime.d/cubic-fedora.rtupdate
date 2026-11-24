@@ -1,0 +1,7 @@
+#! /bin/sh
+set -e
+
+if [ "$1" = rtupdate ]; then
+	py3clean -p cubic-fedora /usr/share/cubic-fedora
+	py3compile -p cubic-fedora -V 3.6- /usr/share/cubic-fedora
+fi

@@ -193,4 +193,16 @@
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/unmount-iso</annotate>
   </action>
+  <action id="cubic-fedora.unmount-root">
+    <description>Unmount the custom root file system image for Cubic Fedora.</description>
+    <message>Enter the administrator password to unmount the custom root file system image for Cubic Fedora.</message>
+    <icon_name>cubic-fedora</icon_name>
+    <defaults>
+      <!-- auth_admin or yes -->
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cubic-fedora/commands/unmount-root</annotate>
+  </action>
 </policyconfig>

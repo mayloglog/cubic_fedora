@@ -69,7 +69,7 @@
             <property name="can-focus">False</property>
             <property name="halign">center</property>
             <property name="hexpand">False</property>
-            <property name="label" translatable="yes">Custom Ubuntu ISO Creator</property>
+            <property name="label" translatable="yes">Custom Fedora ISO Creator</property>
             <property name="single-line-mode">True</property>
             <attributes>
               <attribute name="font-desc" value="Ubuntu Medium 32"/>

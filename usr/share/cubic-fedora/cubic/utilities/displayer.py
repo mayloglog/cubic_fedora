@@ -59,6 +59,7 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 
 from cubic.constants import OK, ERROR, BULLET, PROCESSING, BLANK, INFORMATION
+from cubic.utilities import i18n
 from cubic.utilities import logger
 from cubic.utilities import model
 
@@ -243,6 +244,11 @@ def reset_buttons(
     #
     # 2190 = ← Back
     # 2192 = → Next
+
+    # Translate the button labels (based on the plain text
+    # translations loaded by the i18n module).
+    back_button_label = i18n.tr(back_button_label) if back_button_label else back_button_label
+    next_button_label = i18n.tr(next_button_label) if next_button_label else next_button_label
 
     set_button('back_button', back_button_label, back_action, back_button_style, is_back_sensitive, is_back_visible)
     set_button('next_button', next_button_label, next_action, next_button_style, is_next_sensitive, is_next_visible)
@@ -533,6 +539,10 @@ def update_label(label_name, text, is_error=None):
         False to remove the "error" style context.
     """
     # logger.log_value(f'Update label {label_name}', text)
+
+    # Translate the text (based on the plain text translations loaded
+    # by the i18n module).
+    text = i18n.tr(text)
 
     # Set the label with markup enabled.
     label = model.builder.get_object(label_name)

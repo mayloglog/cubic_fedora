@@ -121,6 +121,10 @@ Depends:
                     python3-pyinotify (>=0.9.6),
 #                   Required to update yaml; usually preinstalled
                     python3-yaml (>=3.12),
+#                   Required to query the rpm database for Fedora family ISOs
+                    rpm (>=4.14),
+#                   Required for the Fedora family media check (implantisomd5)
+                    isomd5sum (>=1.0.0),
 #                   Required for QEMU GTK zoom to fit for Ubuntu > 18.04 LTS
                     qemu-system-gui (>=1:4.2) | qemu-system-x86 (<<1:4.2),
 #                   Required for qemu-system-x86_64

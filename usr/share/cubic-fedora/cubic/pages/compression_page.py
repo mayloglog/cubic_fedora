@@ -63,6 +63,11 @@ radio_buttons = {
 
 compression = None
 
+# Whether the existing compressed Linux file system (the squashfs image
+# from a previous Generate run) should be reused on the Generate page,
+# instead of recompressing the customized Linux file system.
+reuse_squashfs = False
+
 ########################################################################
 # Navigation Functions
 ########################################################################
@@ -126,6 +131,9 @@ def setup(action, old_page=None):
         global compression
         compression = model.options.compression
         displayer.activate_radio_button(radio_buttons[compression], True)
+
+        # Display the reuse squashfs check button state.
+        displayer.activate_check_button('compression_page__reuse_squashfs_check_button', reuse_squashfs)
 
         return
 
@@ -204,6 +212,8 @@ def leave(action, new_page=None):
 
         # Update the model to acknowledge changes.
         model.options.compression = compression
+        model.options.reuse_squashfs_image = reuse_squashfs
+        logger.log_value('Reuse the existing compressed Linux file system', reuse_squashfs)
 
         # Save the model values.
         model.project.configuration.save()
@@ -238,6 +248,23 @@ def leave(action, new_page=None):
 ########################################################################
 # Handler Functions
 ########################################################################
+
+
+def on_toggled__compression_page__reuse_squashfs_check_button(widget):
+    """
+    Store the state of the reuse squashfs check button.
+    """
+
+    global reuse_squashfs
+    reuse_squashfs = widget.get_active()
+
+    # The compression selection is not used when the existing compressed
+    # Linux file system is reused; disable the radio buttons.
+    sensitive = not reuse_squashfs
+    for radio_button_name in radio_buttons.values():
+        displayer.set_sensitive(radio_button_name, sensitive)
+
+    logger.log_value('Reuse the existing compressed Linux file system', reuse_squashfs)
 
 
 def on_toggled__compression_page__radio_button(toggle_button):
