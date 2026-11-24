@@ -1,0 +1,13 @@
+# Debian 构建产物
+debian/*.debhelper
+debian/*.substvars
+debian/files
+debian/cubic-fedora/
+debian/.debhelper/
+*.deb
+*.buildinfo
+*.changes
+
+# Python
+__pycache__/
+*.py[cod]

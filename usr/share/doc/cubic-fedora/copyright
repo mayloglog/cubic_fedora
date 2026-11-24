@@ -1,3 +1,6 @@
+# Cubic-Fedora is a fork of Cubic (https://github.com/PJ-Singh-001/Cubic),
+# maintained by maylog (https://github.com/mayloglog/cubic_fedora).
+# The original Cubic is written by PJ Singh.
 Files: debian/*
 Copyright: 2015, 2020 PJ Singh
 License: /usr/share/common-licenses/GPL-3
