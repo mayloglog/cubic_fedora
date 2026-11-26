@@ -15,7 +15,7 @@
 #       <ISO>/<squashfs directory>/filesystem.squashfs                 #
 #           └── the root file system                                   #
 #                                                                      #
-# • Fedora family (Fedora, Feidora, etc.), squashfs layout:            #
+# • Fedora family (Fedora, CentOS Stream, RHEL, etc.), squashfs layout:            #
 #   The source file is a squashfs image that contains an ext4 root     #
 #   file system image (LiveOS/ext3fs.img or LiveOS/rootfs.img). The    #
 #   squashfs image is extracted into the custom temp directory, and    #
@@ -243,7 +243,7 @@ case "${image_type}" in
         # Fedora family
         echo "Detected a Fedora family layout: the squashfs image contains an embedded root file system image (${inner_image_path})." >&2
         echo "Extracting the squashfs image into the staging directory ${custom_temp_directory}..." >&2
-        echo "NOTE: The embedded root file system image is very large (about 8-10 GB for a Feidora live ISO), so this step may take several minutes. Watch the progress bar; if it does not move at all, check the project log file." >&2
+        echo "NOTE: The embedded root file system image is very large (about 8-10 GB for a Fedora live ISO), so this step may take several minutes. Watch the progress bar; if it does not move at all, check the project log file." >&2
         clear_staging_directory
 
         # Run unsquashfs in the background, and report the amount of
@@ -312,7 +312,7 @@ case "${image_type}" in
             echo "Detected a nested layout: the EROFS image contains an embedded root file system image (${inner_image_path})." >&2
             clear_staging_directory
             echo "Copying the contents of the EROFS image into the staging directory ${custom_temp_directory}..." >&2
-            echo "NOTE: The embedded root file system image is very large (about 8-10 GB for a Feidora live ISO), so this step may take several minutes." >&2
+            echo "NOTE: The embedded root file system image is very large (about 8-10 GB for a Fedora live ISO), so this step may take several minutes." >&2
             # Use rsync (instead of cp) so that the transfer progress is
             # reported as a percentage.
             rsync --info=progress2 -a "${erofs_mount}/" "${custom_temp_directory}/" || {
@@ -359,7 +359,7 @@ case "${image_type}" in
         mkdir -p "${custom_temp_directory}/LiveOS"
         inner_image_path="LiveOS/$(basename "${squashfs_file}")"
         echo "Copying the root file system image into the staging directory ${custom_temp_directory}..." >&2
-        echo "NOTE: The root file system image is very large (about 8-10 GB for a Feidora live ISO), so this step may take several minutes." >&2
+        echo "NOTE: The root file system image is very large (about 8-10 GB for a Fedora live ISO), so this step may take several minutes." >&2
         # Use rsync (instead of cp) so that the transfer progress is
         # reported as a percentage. The -S option preserves sparseness.
         rsync --info=progress2 -a -S "${squashfs_file}" "${custom_temp_directory}/${inner_image_path}" || {

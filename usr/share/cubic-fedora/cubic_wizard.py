@@ -112,7 +112,7 @@ try:
     logger.verbose = arguments.verbose
     logger.log = arguments.log
 
-    logger.log_title('Cubic-Fedora - Custom Fedora and Feidora ISO Creator')
+    logger.log_title('Cubic-Fedora - Custom Fedora ISO Creator')
 
     logger.log_value('Cubic-Fedora version', display_version)
     logger.log_value('Copyright', CUBIC_COPYRIGHT)

@@ -5,7 +5,7 @@
 #                                                                      #
 # Unmount an ISO for Cubic.                                            #
 #                                                                      #
-# For Fedora family projects (Fedora, Feidora, etc.), the custom root  #
+# For Fedora family projects (Fedora, CentOS Stream, RHEL, etc.), the custom root  #
 # directory is a mounted ext4 root file system image (see extract-     #
 # root). The ISO mount point is located directly inside the project    #
 # directory, so if mount information exists next to it, also unmount   #

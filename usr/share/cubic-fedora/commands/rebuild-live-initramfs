@@ -1,0 +1,138 @@
+#!/bin/bash
+
+########################################################################
+# rebuild-live-initramfs (Fedora edition)
+########################################################################
+# Rebuild a live initramfs inside the custom root so that the generated ISO
+# can parse root=live:CDLABEL=... boot parameters.
+
+set -u
+
+program=${0}
+root_directory=${1:-}
+version_name=${2:-}
+initrd_file_name=${3:-}
+release_hint=${4:-${2:-}}
+
+if [[ -z "${root_directory}" || -z "${version_name}" || -z "${initrd_file_name}" ]]; then
+    echo "Usage: ${program} <chroot-directory> <kernel-version> <initrd-file-name> [full-release]" >&2
+    exit 2
+fi
+
+if [[ ! -d "${root_directory}" ]]; then
+    echo "Error. The custom root directory does not exist: ${root_directory}" >&2
+    exit 1
+fi
+
+# Resolve the exact release name used by /lib/modules.  A kernel list may
+# hold a shortened display version such as "7.3.4-300", while dracut needs
+# the full release "7.3.4-300.fc45.x86_64".
+modules_root="${root_directory}/lib/modules"
+requested_release="${release_hint:-${version_name}}"
+kernel_release=""
+
+if [[ -d "${modules_root}/${requested_release}" ]]; then
+    kernel_release=${requested_release}
+elif [[ -n "${version_name}" && -d "${modules_root}/${version_name}" ]]; then
+    kernel_release=${version_name}
+else
+    matches=()
+    for module_directory in "${modules_root}"/*; do
+        [[ -d "${module_directory}" ]] || continue
+        module_name=$(basename "${module_directory}")
+        if [[ "${module_name}" == "${requested_release}"* || "${module_name}" == "${version_name}"* ]]; then
+            matches+=("${module_name}")
+        fi
+    done
+
+    if [[ ${#matches[@]} -eq 1 ]]; then
+        kernel_release=${matches[0]}
+    elif [[ ${#matches[@]} -gt 1 ]]; then
+        echo "Error. More than one kernel release matches '${requested_release}': ${matches[*]}" >&2
+        echo "Pass the full release from the vmlinuz file name." >&2
+        exit 1
+    fi
+fi
+
+if [[ -z "${kernel_release}" ]]; then
+    echo "Error. dracut cannot find /lib/modules/${requested_release} inside the chroot." >&2
+    available=$(find "${modules_root}" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort -V | tr '\n' ' ')
+    if [[ -n "${available}" ]]; then
+        echo "Available kernel releases: ${available}" >&2
+    else
+        echo "No kernel releases are installed under /lib/modules." >&2
+    fi
+    echo "Open the Terminal page and install the matching kernel package, for example:" >&2
+    echo "  dnf install -y kernel-core-${requested_release}" >&2
+    exit 1
+fi
+
+# Fedora hosts with SELinux enforcing can block writes inside the container.
+original_selinux_mode=""
+if command -v getenforce >/dev/null 2>&1; then
+    original_selinux_mode=$(getenforce 2>/dev/null || true)
+    if [[ "${original_selinux_mode}" == "Enforcing" ]]; then
+        setenforce 0 2>/dev/null || true
+    fi
+fi
+restore_selinux() {
+    if [[ "${original_selinux_mode}" == "Enforcing" ]]; then
+        setenforce 1 2>/dev/null || true
+    fi
+}
+trap restore_selinux EXIT
+
+# Locate dracut inside the chroot.
+dracut_in_root=""
+for candidate in /usr/bin/dracut /bin/dracut; do
+    if [[ -x "${root_directory}${candidate}" ]]; then
+        dracut_in_root=${candidate}
+        break
+    fi
+done
+
+if [[ -z "${dracut_in_root}" ]]; then
+    echo "Error. dracut is not installed in the chroot." >&2
+    echo "Open the Terminal page and run: dnf install -y dracut dracut-live dracut-squash dracut-config-generic" >&2
+    exit 1
+fi
+
+# Verify that the live dracut module is available inside the chroot.
+module_found=0
+for module_directory in "${root_directory}"/usr/lib/dracut/modules.d/*dmsquash*; do
+    if [[ -d "${module_directory}" ]]; then
+        module_found=1
+        break
+    fi
+done
+
+if [[ "${module_found}" -eq 0 ]]; then
+    echo "Error. The dracut dmsquash-live module is not installed in the chroot." >&2
+    echo "Open the Terminal page and run: dnf install -y dracut dracut-live dracut-squash dracut-config-generic" >&2
+    exit 1
+fi
+
+echo "Rebuilding live initramfs for ${kernel_release} ..."
+
+if ! systemd-nspawn                          \
+        --quiet                             \
+        --register=no                       \
+        --directory="${root_directory}"     \
+        -- "${dracut_in_root}"              \
+        --force                             \
+        --no-hostonly                       \
+        --add "dmsquash-live livenet"       \
+        "/boot/${initrd_file_name}"         \
+        "${kernel_release}"; then
+    echo "Error. dracut failed inside the chroot for kernel ${kernel_release}." >&2
+    exit 1
+fi
+
+target_path="${root_directory}/boot/${initrd_file_name}"
+if [[ ! -s "${target_path}" ]]; then
+    echo "Error. dracut did not create /boot/${initrd_file_name} in the chroot." >&2
+    exit 1
+fi
+
+echo "dracut completed for ${kernel_release}; the generated initramfs contents will be verified."
+exit 0

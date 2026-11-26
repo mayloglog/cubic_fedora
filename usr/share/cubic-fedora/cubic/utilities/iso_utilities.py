@@ -195,7 +195,7 @@ def unmount_iso_and_delete_mount_point(iso_mount_point):
 def unmount_fedora_root(project_directory):
     """
     Unmount the custom root file system image for a Fedora family
-    project (Fedora, Feidora, etc.), before the custom root directory
+    project (Fedora, CentOS Stream, RHEL, etc.), before the custom root directory
     or the custom temp directory is deleted.
 
     The custom root directory is a mounted ext4 root file system image
@@ -241,7 +241,7 @@ def detect_distro_family(source_directory_path):
     • Debian family (Ubuntu, Debian, etc.) - identified by the ".disk"
       directory, which is required by Casper, and the absence of
       Fedora family markers.
-    • Fedora family (Fedora, Feidora, etc.) - identified by the
+    • Fedora family (Fedora, CentOS Stream, RHEL, etc.) - identified by the
       "media.repo" file or the ".discinfo" file at the root of the
       source disk, together with the "LiveOS" directory used by the
       dracut dmsquash-live module.
@@ -270,8 +270,8 @@ def detect_distro_family(source_directory_path):
     if not is_fedora:
         iso_file_name = model.original.iso_file_name or ''
         iso_volume_id = model.original.iso_volume_id or ''
-        if re.search(r'fedora|feidora', iso_file_name, re.IGNORECASE) or \
-           re.search(r'fedora|feidora', iso_volume_id, re.IGNORECASE):
+        if re.search(r'fedora', iso_file_name, re.IGNORECASE) or \
+           re.search(r'fedora', iso_volume_id, re.IGNORECASE):
             is_fedora = True
 
     distro_family = DISTRO_FAMILY_FEDORA if is_fedora else DISTRO_FAMILY_DEBIAN
@@ -320,7 +320,7 @@ def get_iso_release_name(iso_mount_point):
         logger.log_value('ISO image release name', iso_release_name)
         return iso_release_name
 
-    # Fedora family disks (Fedora, Feidora, etc.) do not have a .disk
+    # Fedora family disks (Fedora, CentOS Stream, RHEL, etc.) do not have a .disk
     # directory. Read the release name from the .discinfo file instead,
     # where the second line contains the release name.
     file_path = os.path.join(iso_mount_point, '.discinfo')

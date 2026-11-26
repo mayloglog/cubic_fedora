@@ -4,7 +4,7 @@
 # unmount-root                                                         #
 #                                                                      #
 # Unmount the custom root file system image for a Fedora family        #
-# project (Fedora, Feidora, etc.), before the custom root or the        #
+# project (Fedora, CentOS Stream, RHEL, etc.), before the custom root or the        #
 # custom temp directories are deleted (see extract-root).              #
 #                                                                      #
 # For Debian family projects, there is nothing to unmount, and this    #

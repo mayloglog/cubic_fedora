@@ -12,7 +12,7 @@
 #   It is compressed into the target squashfs image using mksquashfs,  #
 #   excluding volatile paths.                                          #
 #                                                                      #
-# • Fedora family (Fedora, Feidora, etc.):                             #
+# • Fedora family (Fedora, CentOS Stream, RHEL, etc.):                             #
 #   The custom root directory is a mounted ext4 root file system       #
 #   image (see extract-root). Unmount the image, repack the LiveOS     #
 #   staging directory (which contains the updated image) into the      #
@@ -123,7 +123,7 @@ else
     #    image. The staging directory contains the updated root file
     #    system image (and any sibling files from the original squashfs
     #    or EROFS image).
-    echo "Repacking the LiveOS staging directory into ${squashfs_target} (this may take several minutes for a large Feidora root file system image)..." >&2
+    echo "Repacking the LiveOS staging directory into ${squashfs_target} (this may take several minutes for a large Fedora root file system image)..." >&2
     mksquashfs "${CUBIC_LIVEOS_STAGING}" "${squashfs_target}" \
         -noappend \
         -comp "${compression}" || {

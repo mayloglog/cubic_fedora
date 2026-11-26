@@ -16,9 +16,9 @@ Remove the Cubic-Fedora project configuration. = 移除 Cubic-Fedora 项目配�
 Cubic - Select Files to Copy = Cubic-Fedora - 选择要复制的文件
 Cubic - Select Directory = Cubic-Fedora - 选择目录
 Cubic - Select ISO Disk Image = Cubic-Fedora - 选择 ISO 磁盘镜像
-<b>Cubic</b>\n<small>Custom Ubuntu ISO Creator</small> = <b>Cubic-Fedora</b>\n<small>自定义 Fedora 和 Feidora ISO 制作器</small>
-Custom Fedora ISO Creator = 自定义 Fedora 和 Feidora ISO 制作器
-Custom Fedora and Feidora ISO Creator (Fedora Edition) = 自定义 Fedora 和 Feidora ISO 制作器（Fedora 版）
+<b>Cubic</b>\n<small>Custom Ubuntu ISO Creator</small> = <b>Cubic-Fedora</b>\n<small>自定义 Fedora ISO 制作器</small>
+Custom Fedora ISO Creator = 自定义 Fedora ISO 制作器
+Custom Fedora ISO Creator (Fedora Edition) = 自定义 Fedora ISO 制作器（Fedora 版）
 
 # ---- 通用按钮与操作 ----
 ❬Back = ❬返回
@@ -265,3 +265,15 @@ This kernel is used to bootstrap the original disk. = 此内核用于引导原�
 # ---- 常见状态消息 ----
 Error. Unable to identify information about this disk. = 错误。无法识别此磁盘的信息。
 Error. The rpm package is required to read the package database of this Fedora family disk. Please install it (sudo apt install rpm) and try again. = 错误。需要 rpm 软件包才能读取此 Fedora 系磁盘的软件包数据库。请先安装（sudo apt install rpm）后重试。
+
+# ---- 内核来源选择 ----
+Kernel source: = 内核来源：
+ISO kernel (original disk) = ISO 内核（原始磁盘）
+Chroot kernel (custom root /boot) = Chroot 内核（自定义根目录 /boot）
+Refresh list = 刷新列表
+Source = 来源
+Choose whether the ISO boot kernel or the kernel installed in the chroot is used to bootstrap the customized disk. = 选择使用 ISO 引导内核还是 chroot 中安装的内核来引导自定义磁盘。
+Rescan kernels after installing a new kernel in the chroot terminal. = 在 chroot 终端安装新内核后重新扫描内核。
+Select the kernel that will be used to bootstrap the customized disk.\nChoose the source (ISO kernel or chroot kernel) below, then select a version from the list.\nUse Refresh list after installing a new kernel in the chroot terminal. = 选择用于引导自定义磁盘的内核。\n在下方选择来源（ISO 内核或 chroot 内核），然后从列表中选择版本。\n在 chroot 终端安装新内核后，请点击“刷新列表”。
+This kernel is provided by the original ISO (boot loader files). = 此内核由原始 ISO 提供（引导加载文件）。
+This kernel is installed in the <span font_family="monospace">/boot</span> directory of the customized Linux file system (chroot). = 此内核安装在自定义 Linux 文件系统的 <span font_family="monospace">/boot</span> 目录中（chroot）。

@@ -36,7 +36,7 @@
     <property name="program-name">Cubic-Fedora</property>
     <!-- Major Revisions © 2015, 2020, 2024 PJ Singh-->
     <property name="copyright" translatable="yes">©2015-present PJ Singh. All rights reserved.</property>
-    <property name="comments" translatable="yes">Custom Fedora and Feidora ISO Creator (Fedora Edition).
+    <property name="comments" translatable="yes">Custom Fedora ISO Creator (Fedora Edition).
 Based on Cubic by PJ Singh (https://github.com/PJ-Singh-001/Cubic).</property>
     <property name="website">https://github.com/mayloglog/cubic_fedora</property>
     <property name="website-label" translatable="yes">Cubic-Fedora Website</property>
