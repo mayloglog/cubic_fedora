@@ -1,4 +1,115 @@
-cubic-fedora (2026.12.18-feidora1) noble; urgency=low
+cubic-fedora (2026.12.27-fedora1) noble; urgency=low
+
+  * Renamed the misspelled distribution name to "Fedora" throughout the
+    project. The wrong spelling appeared in the source code comments, the
+    log titles, the desktop entry, the manual page, the package
+    description, the Simplified Chinese translation file, the README and
+    the version suffixes of this changelog; all of them now use the
+    correct name.
+  * The ISO family detection no longer matches the wrong spelling: the
+    file name and volume id fallback now only looks for "fedora".
+  * The package version suffix changed from the old misspelled suffix to
+    "-fedora1".
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 16:03:43 +0800
+
+cubic-fedora (2026.12.26-fedora1) noble; urgency=low
+
+  * Fixed chroot kernel generation still producing a non-live initramfs.
+    Fedora kernel releases such as "7.3.4-300.fc45.x86_64" were truncated
+    to "7.3.4-300", so dracut reported "Cannot find module directory" and
+    wrote an initramfs without dmsquash-live. The full release is now
+    preserved and matched against /lib/modules before dracut runs.
+  * dracut failures inside the chroot are now propagated instead of being
+    reported as success, and initramfs contents are validated directly
+    without depending on lsinitrd being installed on the host.
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 15:34:40 +0800
+
+cubic-fedora (2026.12.25-fedora1) noble; urgency=low
+
+  * Fixed Fedora ISOs still stopping in dracut with "Don't know how to
+    handle 'root=live:CDLABEL=...'": Isolinux boot configurations use
+    relative initrd names (initrd=initrd.img), which were not matched,
+    and /isolinux/initrd.img was missing from the fallback list. Relative
+    paths are now resolved against the configuration file's directory.
+  * Added an initramfs content check after the boot files are written.
+    It inspects gzip/xz/bzip2/zstd/lz4 cpio archives directly (without
+    requiring lsinitrd on the host) and aborts generation when any
+    written initrd lacks the dmsquash-live module.
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 15:26:07 +0800
+
+cubic-fedora (2026.12.24-fedora1) noble; urgency=low
+
+  * Fixed generated ISOs stopping in dracut with "Don't know how to handle
+    'root=live:CDLABEL=...'" when a chroot kernel was selected. Cubic now
+    regenerates the initramfs inside the chroot with the dmsquash-live and
+    livenet dracut modules before copying it to the ISO, and reports a
+    clear error if those modules are not installed.
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 15:18:19 +0800
+
+cubic-fedora (2026.12.23-fedora1) noble; urgency=low
+
+  * Fixed a crash when entering the Generate page ("TypeError: object of
+    type 'TreeModelRow' has no len()"): the selected kernel's source
+    column is now detected with Gtk.TreeModel.get_n_columns().
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 15:08:28 +0800
+
+cubic-fedora (2026.12.22-fedora1) noble; urgency=low
+
+  * Fixed a second startup failure ("TypeError: 'NoneType' object is not
+    iterable" while loading mime.types) by pointing the application
+    resource directory to /usr/share/cubic-fedora instead of /usr/bin.
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 15:01:54 +0800
+
+cubic-fedora (2026.12.21-fedora1) noble; urgency=low
+
+  * Fixed startup failure "ModuleNotFoundError: No module named 'cubic'" by
+    adding /usr/share/cubic-fedora to the launcher's Python module path.
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 14:59:03 +0800
+
+cubic-fedora (2026.12.20-fedora1) noble; urgency=low
+
+  * Added manual selection of the kernel source on the Kernel page:
+    - The kernel list can now be switched between the original ISO
+      kernel and the kernel installed in the chroot (/boot).
+    - The list can be refreshed after installing a new kernel in the
+      chroot terminal, and each source remembers its own selection.
+    - When a chroot kernel is selected, the initramfs is checked for
+      the dmsquash-live module (if lsinitrd is available); generation
+      stops with a dracut command if the module is missing.
+  * Fixed the selected kernel not being used by the generated disk
+    image (kernel list selection had no effect for Fedora disks):
+    - The Generate page skipped the kernel copy entirely when the boot
+      directory was not identified (the usual case for Fedora family
+      disks), so the ISO kept booting the original kernel.
+    - The Generate page now applies the selected kernel (vmlinuz and
+      initramfs) to the boot loader files that the boot configurations
+      actually reference (the "linux", "linuxefi", "kernel", "initrd",
+      "initrdefi" directives and the isolatedinux "initrd=" token, plus
+      the common loader locations), rewriting the files in place at the
+      same paths. Because the paths are unchanged, the BIOS
+      configurations and the configuration embedded in the EFI system
+      partition image (images/efiboot.img) both boot the new kernel.
+    - When the loader files of the layout can not be identified (for
+      example, a unified kernel image), the original boot files are
+      retained and the page reports that the selection is not applied.
+    - A note (log) explains that an initramfs generated for an
+      installed kernel inside the chroot may require the dmsquash-live
+      module ("dracut --add dmsquash-live --force ...") to boot the
+      live session.
+  * README: documented the kernel selection behaviour, and added
+    instructions to build the package as an .rpm (Fedora/openSUSE/RHEL)
+    and as an Arch package (PKGBUILD), in addition to .deb.
+
+ -- Fedora Edition <fedora@example.com>  Thu, 26 Nov 2026 14:52:22 +0800
+
+cubic-fedora (2026.12.18-fedora1) noble; urgency=low
 
   * Added automatic correction of the live media boot parameters for
     the Fedora family, fixing the hang after startup ("systemd(1):
@@ -28,9 +139,9 @@ cubic-fedora (2026.12.18-feidora1) noble; urgency=low
     - The media check MD5 implantation added in the previous version
       is retained.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 18:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 18:00:00 +0000
 
-cubic-fedora (2026.12.17-feidora1) noble; urgency=low
+cubic-fedora (2026.12.17-fedora1) noble; urgency=low
 
   * Completed the boot fix for Fedora family disks: regenerate the
     media check MD5 checksum after creating the disk image.
@@ -45,14 +156,12 @@ cubic-fedora (2026.12.17-feidora1) noble; urgency=low
       checksum always matches the generated image.
     - Added isomd5sum to the package dependencies.
   * The label correction from the previous release continues to work:
-    with this release the Fedora family (Feidora) disks are expected
+    with this release the Fedora family disks are expected
     to boot completely into the live desktop.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 15:10:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 15:10:00 +0000
 
-cubic-fedora (2026.12.17-feidora1) noble; urgency=low
-
-cubic-fedora (2026.12.16-feidora1) noble; urgency=low
+cubic-fedora (2026.12.16-fedora1) noble; urgency=low
 
   * Replaced the boot configuration label rewriting with an automatic
     volume id correction (Fedora family):
@@ -76,9 +185,9 @@ cubic-fedora (2026.12.16-feidora1) noble; urgency=low
       generation), is logged with the previous and corrected values,
       and is not applied to Debian family disks.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 15:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 15:30:00 +0000
 
-cubic-fedora (2026.12.15-feidora1) noble; urgency=low
+cubic-fedora (2026.12.15-fedora1) noble; urgency=low
 
   * Fixed the crash when selecting the original ISO ("NameError: name
     'model' is not defined" in construct_custom_iso_volume_id):
@@ -90,9 +199,9 @@ cubic-fedora (2026.12.15-feidora1) noble; urgency=low
       initialization can respect it (Fedora family disks keep the
       original volume id).
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 14:10:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 14:10:00 +0000
 
-cubic-fedora (2026.12.14-feidora1) noble; urgency=low
+cubic-fedora (2026.12.14-fedora1) noble; urgency=low
 
   * Fixed the dracut emergency shell on the second generated disk
     image ("Warning: /dev/disk/by-label/Fedora-Cimm-Live-45 does not
@@ -120,9 +229,9 @@ cubic-fedora (2026.12.14-feidora1) noble; urgency=low
     normal Generate first. The compression selection is disabled while
     the check button is checked.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 17:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 17:30:00 +0000
 
-cubic-fedora (2026.12.13-feidora1) noble; urgency=low
+cubic-fedora (2026.12.13-fedora1) noble; urgency=low
 
   * Fixed the dracut emergency shell when booting the generated disk
     image ("Warning: /dev/disk/by-label/... does not exist"):
@@ -143,9 +252,9 @@ cubic-fedora (2026.12.13-feidora1) noble; urgency=low
     layouts, the branding, the i18n mechanism, and the build
     instructions.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 16:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 16:30:00 +0000
 
-cubic-fedora (2026.12.12-feidora1) noble; urgency=low
+cubic-fedora (2026.12.12-fedora1) noble; urgency=low
 
   * Fixed the VirtualBox boot failure of the generated disk image
     ("file '/initrd' not found"):
@@ -166,9 +275,9 @@ cubic-fedora (2026.12.12-feidora1) noble; urgency=low
       name was computed without an extension ("initrd"), which
       matched the reported error path.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 15:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 15:30:00 +0000
 
-cubic-fedora (2026.12.11-feidora1) noble; urgency=low
+cubic-fedora (2026.12.11-fedora1) noble; urgency=low
 
   * Fixed the remaining "Custom Ubuntu ISO Creator" subtitle in the
     window header (it now reads "Custom Fedora ISO Creator").
@@ -188,9 +297,9 @@ cubic-fedora (2026.12.11-feidora1) noble; urgency=low
   * The Simplified Chinese translation keys were synchronized with the
     renamed "Cubic-Fedora" user interface texts.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 14:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 14:00:00 +0000
 
-cubic-fedora (2026.12.10-feidora1) noble; urgency=low
+cubic-fedora (2026.12.10-fedora1) noble; urgency=low
 
   * Fixed the hang after selecting the kernel and clicking Next:
     - On Fedora 45 disks, no boot configuration files matched the boot
@@ -216,9 +325,9 @@ cubic-fedora (2026.12.10-feidora1) noble; urgency=low
     234 entries, covering the page status messages, the file operation
     dialogs, the boot notes, and the common errors.
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 12:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 12:30:00 +0000
 
-cubic-fedora (2026.12.9-feidora1) noble; urgency=low
+cubic-fedora (2026.12.9-fedora1) noble; urgency=low
 
   * Fixed the "The command was not found or was not executable: rpm"
     error on the Prepare page:
@@ -245,9 +354,9 @@ cubic-fedora (2026.12.9-feidora1) noble; urgency=low
     "Cubic-Fedora" (the About dialog, the window header, the menu, the
     page headers, and the file chooser titles).
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 11:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 11:30:00 +0000
 
-cubic-fedora (2026.12.8-feidora1) noble; urgency=low
+cubic-fedora (2026.12.8-fedora1) noble; urgency=low
 
   * Supported the "tree" live image layout of Fedora 45 (the LiveOS
     image, although it may be named squashfs.img, is an EROFS or
@@ -277,9 +386,9 @@ cubic-fedora (2026.12.8-feidora1) noble; urgency=low
     • rsync percent (EROFS and raw root file system images),
     • the 3 second monitor (MB staged so far).
 
- -- Feidora Edition <feidora@example.com>  Mon, 24 Nov 2026 10:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 24 Nov 2026 10:00:00 +0000
 
-cubic-fedora (2026.12.7-feidora1) noble; urgency=low
+cubic-fedora (2026.12.7-fedora1) noble; urgency=low
 
   * Improved the visibility of the extraction progress, so that a slow
     target disk can be told apart from a stalled process:
@@ -297,9 +406,9 @@ cubic-fedora (2026.12.7-feidora1) noble; urgency=low
     - The real-time process output reporting now excludes the in-place
       progress updates drawn by rsync.
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 22:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 22:00:00 +0000
 
-cubic-fedora (2026.12.6-feidora1) noble; urgency=low
+cubic-fedora (2026.12.6-fedora1) noble; urgency=low
 
   * Fixed the extraction failure "Can't find a valid SQUASHFS
     superblock" on Fedora 45 disks:
@@ -324,9 +433,9 @@ cubic-fedora (2026.12.6-feidora1) noble; urgency=low
       message (asking for the output of file and blkid), instead of
       the misleading "Debian family layout" unsquashfs failure.
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 21:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 21:00:00 +0000
 
-cubic-fedora (2026.12.5-feidora1) noble; urgency=low
+cubic-fedora (2026.12.5-fedora1) noble; urgency=low
 
   * Hardened all long running processes against "getcwd(): No such
     file or directory" failures (rsync code 3):
@@ -339,9 +448,9 @@ cubic-fedora (2026.12.5-feidora1) noble; urgency=low
     troubleshooting; the startup console output should also include
     "The working directory was changed to ...".
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 20:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 20:00:00 +0000
 
-cubic-fedora (2026.12.4-feidora1) noble; urgency=low
+cubic-fedora (2026.12.4-fedora1) noble; urgency=low
 
   * Fixed the rsync failure ("getcwd(): No such file or directory",
     rsync code 3) at the start of the copy step:
@@ -355,9 +464,9 @@ cubic-fedora (2026.12.4-feidora1) noble; urgency=low
       home directory at startup, so subprocesses are immune to the
       launch directory being deleted or unmounted.
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 19:20:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 19:20:00 +0000
 
-cubic-fedora (2026.12.3-feidora1) noble; urgency=low
+cubic-fedora (2026.12.3-fedora1) noble; urgency=low
 
   * Fixed the analysis failure on Fedora 45 disks:
     - The boot files (casper directory) may not be identifiable on
@@ -380,9 +489,9 @@ cubic-fedora (2026.12.3-feidora1) noble; urgency=low
       status icon previously kept spinning, which looked like the
       application was stuck).
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 18:10:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 18:10:00 +0000
 
-cubic-fedora (2026.12.2-feidora1) noble; urgency=low
+cubic-fedora (2026.12.2-fedora1) noble; urgency=low
 
   * Fixed the long hang at the start of the extract step:
     - The unmount-root command was missing from the polkit policy, so
@@ -401,16 +510,16 @@ cubic-fedora (2026.12.2-feidora1) noble; urgency=low
       progress bar redraws.
     - Stage markers were added to the extract-root and compress-root
       commands, including a note about the expected duration of
-      extracting the large embedded Feidora root file system image
+      extracting the large embedded Fedora root file system image
       (about 8-10 GB).
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 17:30:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 17:30:00 +0000
 
-cubic-fedora (2026.12.1-feidora1) noble; urgency=low
+cubic-fedora (2026.12.1-fedora1) noble; urgency=low
 
-  * Feidora edition fork, packaged as "cubic-fedora" so that it can be
+  * Fedora edition fork, packaged as "cubic-fedora" so that it can be
     installed side by side with the original "cubic" package.
-  * Added support for Feidora (Fedora family) distribution ISOs:
+  * Added support for Fedora (Fedora family) distribution ISOs:
     - New distribution family detection, and a nested LiveOS root file
       system layout (the ext4 root image inside LiveOS/squashfs.img is
       mounted read/write at the custom root directory).
@@ -427,7 +536,7 @@ cubic-fedora (2026.12.1-feidora1) noble; urgency=low
     "cubic" to "cubic-fedora".
   * Based on upstream Cubic 2026.09.
 
- -- Feidora Edition <feidora@example.com>  Mon, 23 Nov 2026 16:00:00 +0000
+ -- Fedora Edition <fedora@example.com>  Mon, 23 Nov 2026 16:00:00 +0000
 
 cubic (2026.09) stonking resolute questing plucky oracular noble mantic lunar kinetic jammy impish hirsute groovy focal bionic; urgency=low
 
